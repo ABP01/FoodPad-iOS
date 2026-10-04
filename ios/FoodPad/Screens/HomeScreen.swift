@@ -20,13 +20,87 @@ final class HomeViewModel: ObservableObject {
     @Published var isLoading: Bool = true
     @Published var errorMessage: String?
 
+    /// Restriction « favoris uniquement », posée par la feuille de filtres.
+    @Published var favoritesOnly: Bool = false
+
     private let service: MealService
+    private let favorites: FavoritesStore
 
     /// Tâche de recherche courante, annulée si l'utilisateur continue de taper.
     private var searchTask: Task<Void, Never>?
 
-    init(service: MealService = LiveMealService()) {
+    init(service: MealService = LiveMealService(), favorites: FavoritesStore? = nil) {
         self.service = service
+        // Le paramètre est optionnel plutôt que valoré à `.shared` : une
+        // expression d'argument par défaut est évaluée dans un contexte non
+        // isolé, alors que `FavoritesStore` est isolé sur le main actor.
+        self.favorites = favorites ?? .shared
+
+        #if DEBUG
+        // Permet de vérifier le rendu du filtre « favoris uniquement » sans
+        // ouvrir la feuille de filtres. Voir DevTools.swift.
+        if DevTools.hasFlag("-favoritesOnly") {
+            self.favoritesOnly = true
+        }
+        #endif
+    }
+
+    // MARK: - Vue filtrée
+
+    /// Vrai dès qu'au moins une recette a été reçue, indépendamment du filtre.
+    ///
+    /// Permet de distinguer « encore en chargement » de « filtre qui ne laisse
+    /// rien passer » : les deux se traduisent par une grille vide.
+    var hasAnyMeal: Bool { !meals.isEmpty }
+
+    /// Filtre courant, tel que présenté dans la feuille.
+    var filter: RecipeFilter {
+        // `activeCategory` vaut toujours une catégorie concrète ; on ne
+        // restitue une sélection explicite que si elle diffère du défaut.
+        RecipeFilter(
+            category: activeCategory == LiveMealService.defaultCategory ? nil : activeCategory,
+            favoritesOnly: favoritesOnly
+        )
+    }
+
+    /// Recettes réellement affichées, filtre « favoris » appliqué.
+    ///
+    /// Une liste vide ici est un cas distinct de « aucune recette » : d'où
+    /// `isFavoritesFilterHidingEverything` pour adapter le message affiché.
+    var visibleMeals: [Meal] {
+        favoritesOnly ? favorites.favorites(in: meals) : meals
+    }
+
+    /// Vrai quand le filtre actif masque tout : la catégorie a des recettes,
+    /// mais aucune n'est favorite.
+    var isFavoritesFilterHidingEverything: Bool {
+        favoritesOnly && !meals.isEmpty && visibleMeals.isEmpty
+    }
+
+    var favoritesCount: Int { favorites.count }
+
+    // MARK: - Filtres
+
+    /// Applique un filtre venu de la feuille.
+    ///
+    /// Seul un changement de catégorie déclenche un appel réseau ; basculer le
+    /// mode favoris se fait localement, sans rechargement.
+    func applyFilter(_ newFilter: RecipeFilter) {
+        favoritesOnly = newFilter.favoritesOnly
+
+        let newCategory = newFilter.resolvedCategory
+        guard newCategory != activeCategory else { return }
+
+        activeCategory = newCategory
+        searchText = ""
+        searchTask?.cancel()
+
+        Task { await reloadActiveCategory() }
+    }
+
+    /// Retire le mode « favoris uniquement ».
+    func clearFavoritesOnly() {
+        favoritesOnly = false
     }
 
     // MARK: - Chargement
@@ -133,11 +207,20 @@ final class HomeViewModel: ObservableObject {
 struct HomeScreen: View {
 
     @StateObject private var viewModel: HomeViewModel
-    var onSelect: (Meal) -> Void
 
-    init(service: MealService = LiveMealService(), onSelect: @escaping (Meal) -> Void) {
+    var onSelect: (Meal) -> Void
+    var onOpenFavorites: () -> Void
+
+    @State private var isPresentingFilters = false
+
+    init(
+        service: MealService = LiveMealService(),
+        onSelect: @escaping (Meal) -> Void,
+        onOpenFavorites: @escaping () -> Void = {}
+    ) {
         _viewModel = StateObject(wrappedValue: HomeViewModel(service: service))
         self.onSelect = onSelect
+        self.onOpenFavorites = onOpenFavorites
     }
 
     var body: some View {
@@ -146,7 +229,12 @@ struct HomeScreen: View {
 
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 24) {
-                    HomeHeader()
+                    HomeHeader(
+                        isFilterActive: viewModel.filter.isRestricting,
+                        favoritesCount: viewModel.favoritesCount,
+                        onOpenFilters: { isPresentingFilters = true },
+                        onOpenFavorites: onOpenFavorites
+                    )
                     HomeHeadline()
 
                     SearchBar(text: $viewModel.searchText) {
@@ -161,21 +249,15 @@ struct HomeScreen: View {
                         )
                     }
 
+                    if viewModel.favoritesOnly {
+                        activeFilterChip
+                    }
+
                     if let error = viewModel.errorMessage {
                         errorBanner(error)
                     }
 
-                    if viewModel.isLoading && viewModel.meals.isEmpty {
-                        // `mt-20` dans Recipes.js : 5rem = 80 px
-                        Loading(topPadding: 80)
-                            .frame(height: 30.hp())
-                    } else {
-                        RecipesGrid(
-                            meals: viewModel.meals,
-                            isSearching: !viewModel.searchText.isEmpty,
-                            onSelect: onSelect
-                        )
-                    }
+                    grid
                 }
                 .padding(.horizontal, 16)   // mx-4  → 1rem   = 16
                 .padding(.top, 56)           // pt-14 → 3.5rem = 56  (PAS un %)
@@ -183,6 +265,84 @@ struct HomeScreen: View {
             }
         }
         .task { await viewModel.load() }
+        .sheet(isPresented: $isPresentingFilters) {
+            FilterSheet(
+                categories: viewModel.categories,
+                favoritesCount: viewModel.favoritesCount,
+                filter: viewModel.filter
+            ) { filter in
+                viewModel.applyFilter(filter)
+            }
+        }
+    }
+
+    // MARK: Grille
+
+    @ViewBuilder
+    private var grid: some View {
+        if viewModel.isLoading && !viewModel.hasAnyMeal {
+            // `mt-20` dans Recipes.js : 5rem = 80 px
+            Loading(topPadding: 80)
+                .frame(height: 30.hp())
+        } else if viewModel.isFavoritesFilterHidingEverything {
+            noFavoriteInCategory
+        } else {
+            RecipesGrid(
+                meals: viewModel.visibleMeals,
+                isSearching: !viewModel.searchText.isEmpty,
+                onSelect: onSelect
+            )
+        }
+    }
+
+    // MARK: Messages
+
+    /// Rappel du filtre actif, avec une sortie à un geste.
+    private var activeFilterChip: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "heart.fill")
+                .foregroundStyle(Theme.accent)
+
+            Text("Favorites Only")
+                .font(Typo.categoryLabel)
+
+            Spacer(minLength: 8)
+
+            Button {
+                viewModel.clearFavoritesOnly()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(Theme.neutral500)
+                    .padding(6)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Retirer le filtre favoris")
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(Theme.pillInactive, in: Capsule())
+    }
+
+    private var noFavoriteInCategory: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "heart.slash")
+                .font(.system(size: 5.hp(), weight: .light))
+                .foregroundStyle(Theme.neutral500.opacity(0.5))
+
+            Text("No favorite in \(viewModel.activeCategory)")
+                .font(Typo.categoryLabel)
+                .foregroundStyle(Theme.neutral600)
+
+            Button("Show all \(viewModel.activeCategory)") {
+                viewModel.clearFavoritesOnly()
+            }
+            .font(Typo.categoryLabel.weight(.semibold))
+            .foregroundStyle(Theme.accent)
+            .buttonStyle(.plain)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8.hp())
     }
 
     private func errorBanner(_ message: String) -> some View {

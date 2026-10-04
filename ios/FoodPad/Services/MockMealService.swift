@@ -87,25 +87,20 @@ struct MockMealService: MealService {
 
     /// Version allégée, telle que renvoyée par `filter.php` :
     /// ni ingrédients, ni instructions, ni origine.
+    ///
+    /// Identifiants, noms et vignettes sont **réels** (relevés sur
+    /// `filter.php?c=Beef`) : avec des URLs inventées, les images ne se
+    /// chargeraient pas et les previews montreraient des rectangles gris —
+    /// on ne pourrait pas juger de la mise en page.
     static let meals: [Meal] = [
-        .mock("52771", "Spicy Arrabiata", "Beef"),
-        .mock("52855", "Baked salmon with fennel", "Seafood"),
-        .mock("52959", "Chicken Basquaise", "Chicken"),
-        .mock("53013", "Big Mac", "Beef"),
-        .mock("52844", "Lasagne", "Pasta"),
-        .mock("52768", "Apple Frangipan Tart", "Dessert"),
-        .mock("52765", "Turkish Apple Pie", "Dessert"),
-        .mock("52772", "Teriyaki Chicken Casserole", "Chicken"),
-        .mock("52952", "Peanut Butter Chocolate Cake", "Dessert"),
-        .mock("52781", "Irish Beef Stew", "Beef"),
-        .mock("52839", "Chocolate Gateau", "Dessert"),
-        .mock("53006", "Chicken Parmesan", "Chicken"),
-        .mock("52792", "Honey Teriyaki Salmon", "Seafood"),
-        .mock("52895", "Corba", "Pasta"),
-        .mock("52817", "Pad See Ew", "Pasta"),
-        .mock("52788", "Beef Wellington", "Beef"),
-        .mock("52831", "Mushroom and Barley Soup", "Miscellaneous"),
-        .mock("52895", "Red Lentil Soup", "Vegan"),
+        .mock("53281", "Algerian Kefta (Meatballs)", "Beef", "8rfd4q1764112993"),
+        .mock("53334", "Arepa Pabellón", "Beef", "13fg4j1764441982"),
+        .mock("53329", "Arepa pelua", "Beef", "jgl9qq1764437635"),
+        .mock("53133", "Asado", "Beef", "kgfh3q1763075438"),
+        .mock("53099", "Aussie Burgers", "Beef", "44bzep1761848278"),
+        .mock("53457", "Barbados Pepperpot", "Beef", "5tf8j11782236249"),
+        .mock("53366", "Beef and Broccoli Stir-Fry", "Beef", "m0p0j81765568742"),
+        .mock("52874", "Beef and Mustard Pie", "Beef", "sytuqu1511553755"),
     ]
 
     /// Version détaillée, avec ingrédients et instructions.
@@ -181,17 +176,15 @@ struct MockMealService: MealService {
 
 private extension Meal {
 
-    /// Constructeur rapide pour les fiches résumées.
-    static func mock(_ id: String, _ name: String, _ category: String) -> Meal {
-        // URL d'image réelle, pour que l'écran montre bien les visuels
-        // même sans réponse de l'API.
-        let slug = name
-            .lowercased()
-            .replacingOccurrences(of: " ", with: "-")
-        return Meal(
+    /// Constructeur rapide pour une fiche résumée.
+    ///
+    /// - Parameter imageSlug: nom de fichier de la vignette chez TheMealDB.
+    static func mock(_ id: String, _ name: String, _ category: String,
+                     _ imageSlug: String) -> Meal {
+        Meal(
             id: id,
             name: name,
-            thumbnailURL: "https://www.themealdb.com/images/media/meals/\(slug).jpg",
+            thumbnailURL: "https://www.themealdb.com/images/media/meals/\(imageSlug).jpg",
             category: category,
             area: nil,
             instructions: nil,

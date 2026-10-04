@@ -330,6 +330,28 @@ Le rendu sera très proche mais pas identique. À valider à l'écran.
 - reproduire le bug (fidélité stricte) — **déconseillé**, c'est un défaut
 - corriger au passage, c'est une amélioration légitime et visible
 
+**Arbitrage retenu : corriger**, et se demander ensuite jusqu'où aller. Si les
+favoris persistent, l'app a une raison de les proposer autrement que dans une
+seule vue : l'écran « Mes favoris » en découle naturellement. C'est ce qui a
+été fait (cf. phase 9).
+
+Corollaire à anticiper : un favori qu'on ne peut pas **lire** hors ligne ne sert
+à rien. Stocker `[String]` d'identifiants est insuffisant — il manque le nom et
+l'image de chaque plat pour dessiner la liste. `FavoritesStore` stocke donc des
+entrées `{id, name, thumbnailURL}`, ce qui impose de faire evolving l'API :
+
+```swift
+// avant : l'appelant n'avait que l'identifiant sous la main
+func toggle(_ mealID: String)
+
+// après : il faut la recette complète
+func toggle(_ meal: Meal)
+```
+
+La recette détaillée rechargeant le plat via `lookup.php`, elle appelle
+`favorites.enrich(_:)` une fois chargée : l'entrée stockée gagne alors son image
+à jour, sans duplication des ingrédients en mémoire.
+
 ### 5.3 Les proportions relatives à la hauteur
 
 Sur iPad, `hp(5)` sur 1024 pt de hauteur = 51 pt de titre. L'app sera
@@ -412,12 +434,52 @@ Bug de performance. La version Swift avec `task {}` le résout naturellement.
 | 6 — Details | Fait | `RecipeDetailsScreen.swift` | 3 animations, favori persiste |
 | 7 — Cache + finitions | Fait | `CachedImage.swift` | cache disque via `FileManager` |
 | 8 — Shipping | Fait | `FoodPadApp.swift` | bundle ID, icone, portrait |
+| 9 — Boutons fonctionnels | Fait | `FilterSheet.swift`, `FavoritesScreen.swift`, `DevTools.swift` | icone filtres + avatar cables, liens externes |
 
-**19 fichiers Swift, 2 708 lignes** (dont 13 nouveaux dans les phases 2 a 8).
+**22 fichiers Swift, 3 556 lignes.**
+
+### Phase 9 — Rendre chaque bouton actif
+
+L'app React Native d'origine contient plusieurs elements d'interface qui
+n'etaient **que decoratifs** : aucun gestionnaire d'appui, donc rien ne se
+produisait. Recensement fait avant de coder, pour ne rien laisser de mort :
+
+| Element | Etat dans l'app RN | Traitement |
+| --- | --- | --- |
+| Bouton « Get Started » | fonctionnel | — |
+| Champ de recherche | decoratif | **corrige** (voir ecarts) |
+| Boutons de categories | fonctionnels | — |
+| Carte de recette | fonctionnelle | — |
+| Chevron de retour (details) | fonctionnel | — |
+| Coeur favori (details) | fonctionnel mais non persiste | **corrige** (voir ecarts) |
+| Icone de filtres (`HomeHeader`) | `Image` sans `onPress` | **feuille de filtres** |
+| Avatar (`HomeHeader`) | `Image` sans `onPress` | **ecran « Mes favoris »** |
+| `strYoutube` | recupere, jamais affiche | **bouton « Watch Video »** |
+| `strSource` | recupere, jamais affiche | **bouton « Original Recipe »** |
+
+Trois decisions a noter :
+
+- **La feuille de filtres** (`Components/FilterSheet.swift`) travaille sur une
+  copie (`@State draft`) : rien n'est applique tant que l'utilisateur n'a pas
+  valide, ce qui permet d'annuler sans declencher d'appel reseau. Seul un
+  changement de *categorie* recharge ; basculer le mode « favoris » est local.
+- **L'ecran des favoris** (`Screens/FavoritesScreen.swift`) affiche une grille
+  en maconnerie identique a celle de l'accueil, avec etat vide et effacement
+  global sous confirmation. Il lit `FavoritesStore` comme objet observe : un
+  coeur ajoute ou retire ailleurs se reflechit immediatement.
+- **`FavoritesStore` stocke des entrees completes** (`id`, `name`,
+  `thumbnailURL`) et non des identifiants. L'ancien format ne permettait pas
+  d'afficher une liste hors ligne — il manquait le nom et l'image de chaque
+  plat. `toggle` prend donc desormais une `Meal` et non un `String`.
+  La cle de stockage est versionnee (`foodpad.favorites.v2`).
+
+Le bouton YouTube ouvre `youtube://` et bascule sur l'URL web si aucune
+application ne gere le schema — sans ce repli, il ne ferait rien sur un
+appareil sans YouTube installe.
 
 ### Ecarts assumes avec l'app React Native
 
-Trois differences deliberees, toutes documentees :
+Cinq differences deliberees, toutes documentees :
 
 1. **Favoris persistes** — l'app RN utilise un `useState`, donc le coeur se
    perd au redemarrage. Corrige via `UserDefaults` (`Services/FavoritesStore.swift`).
@@ -427,6 +489,28 @@ Trois differences deliberees, toutes documentees :
 3. **`useEffect` sans dependances corrige** — l'app RN relance l'appel reseau
    `lookup.php` a chaque rendu de `RecipeDetailsScreen`. Le `.task` de SwiftUI
    ne s'execute qu'une fois.
+4. **Ecran des favoris et feuille de filtres** — ils n'existent pas dans l'app
+   RN, ou les boutons qui les ouvriraient ne font rien. Ajoutes parce qu'un
+   bouton qui ne fait rien est pire qu'un bouton absent.
+5. **Visuels manquants regeneres** — voir section 9.11.
+
+### Points a valider a l'oeil
+
+Ces points ne peuvent pas etre verifies par capture d'ecran : ils exigent de
+regarder l'app en fonctionnement.
+
+- [ ] **Animation Lottie** — le lecteur est branche et le JSON embarque dans le
+      bundle, mais une animation ne se juge pas sur une image fixe
+- [ ] **`dampingFraction: 0.7`** — approximation de `.damping(12)` Reanimated
+- [ ] **Transition partagee image** — non implementee : `matchedGeometryEffect`
+      combine a `.navigationTransition(.zoom)` exige iOS 18, or la cible est
+      iOS 16. A ajouter si tu fais monter la cible.
+- [ ] **Icones Heroicons a SF Symbols** — compromis assume, voir section 4
+- [ ] **iPad / rotation** — `hp()` etant relatif a la hauteur, le rendu se
+      degrade fortement hors portrait. Non traite, cf. section 5.3
+- [ ] **Gestes sur les nouveaux boutons** — fermeture du clavier, retour
+      tactile, enchainement filtre → grille → fiche n'ont pas ete verifies
+      tactilement (la verification automatisée ne peut pas cliquer)
 
 ### Points a valider a l'oeil
 
@@ -585,3 +669,62 @@ la section 9.9 — la repartition globale des couleurs ne le montrait pas.
    17- 25%  luminance 255.0  sombre  0.0%
    83- 91%  luminance 102.9  sombre 56.8% #### <- cartes + degrades OK
 ```
+
+⚠️  **Le profil vertical ne voit pas les elements clairs sur fond blanc.**
+Il compte la part de pixels *sombres*. Un avatar blanc sur fond blanc rend
+« 0.2 % sombre » exactement comme une zone vide — j'en ai conclu a tort que
+l'image ne se chargeait pas, alors qu'elle se chargeait tres bien.
+
+Pour un element clair sur fond clair, il faut une sonde ciblee sur la zone
+attendue, avec un seuil de couleur adapte :
+
+```python
+# Avatar attendu en haut a droite de l'en-tete, et temoin a gauche
+probe(1028, 495, 1168, 635)   # -> 48.9 % de pixels chauds  <- l'image est la
+probe(  60, 495,  200, 635)   # ->  0.0 % de pixels chauds  <- vide, temoin
+```
+
+Regle : **ne jamais conclure de l'absence d'un element a partir d'une metrique
+moyenne.** Sonder la zone attendue, et toujours comparer a un temoin equivalent
+ailleurs sur l'ecran.
+
+### 9.11 Les visuels du template d'origine sont vides
+
+Trois images livrees avec le template React Native ne contiennent rien :
+
+| Fichier | Contenu reel |
+| --- | --- |
+| `assets/images/avatar.png` | 0.0 % de pixels opaques |
+| `assets/images/background.png` | 0.0 % — fichier identique a `avatar.png` (meme MD5) |
+| `assets/splash.png` | 0.2 % |
+| `AppIcon` d'origine | 92.6 % de noir |
+
+Consequence : l'app d'origine **n'affiche ni avatar, ni fond d'accueil**, et son
+icone est un carre noir. Le portage SwiftUI rend correctement des images vides —
+c'est la source qui est vide, pas le rendu.
+
+Un avatar invisible n'est pas un bouton fonctionnel : le bouton est present,
+tappable, et ne montre rien. `scripts/generate-assets.py` produit donc de vrais
+visuels dans le catalogue iOS :
+
+- **icone** — assiette blanche, couverts blancs, fond degrade dans la teinte
+  de l'accent. Formes épaisses et peu nombreuses, pour rester lisible a 60 pt.
+- **avatar** — silhouette de personne, fond chaud degrade. 512 px suffisent :
+  l'image s'affiche sur ~44 pt, soit 132 px en @3x.
+- **fond d'accueil** — degrade plus clair que l'accent, avec trois disques
+  translucides. L'ecran Welcome pose deja `Theme.accent` en aplat : une image
+  plus sombre disparaitrait.
+
+Le script n'a **aucune dependance** : encodeur PNG maison (`zlib` + `struct`),
+formes dessinees par champs de distance, anticrenelage par `smoothstep`. Les
+fichiers d'origine ne sont pas modifies — ils restent dans `assets/` comme
+reference de ce que faisait l'app RN.
+
+```
+python3 scripts/generate-assets.py    # ~30 s en Python pur
+```
+
+Les IDs, noms et vignettes de `MockMealService` sont eux aussi **reels** (releves
+sur `filter.php?c=Beef`) : avec des URLs inventees, les images ne se chargeraient
+pas et les previews montreraient des rectangles gris — impossible alors de juger
+la mise en page.

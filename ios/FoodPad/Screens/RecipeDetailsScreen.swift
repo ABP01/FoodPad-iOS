@@ -24,17 +24,18 @@ final class RecipeDetailsViewModel: ObservableObject {
     private let favorites: FavoritesStore
 
     init(meal: Meal, service: MealService = LiveMealService(),
-         favorites: FavoritesStore = .shared) {
+         favorites: FavoritesStore? = nil) {
         self.meal = meal
         self.service = service
-        self.favorites = favorites
+        // Voir `HomeViewModel.init` : un argument par défaut `.shared` serait
+        // évalué hors du main actor.
+        self.favorites = favorites ?? .shared
     }
 
     var isFavorite: Bool { favorites.isFavorite(meal.id) }
 
     func toggleFavorite() {
-        favorites.toggle(meal.id)
-        objectWillChange.send()
+        favorites.toggle(meal)
     }
 
     /// Charge la fiche complète.
@@ -53,9 +54,44 @@ final class RecipeDetailsViewModel: ObservableObject {
 
         do {
             meal = try await service.fetchMealDetail(id: meal.id)
+            // La fiche complète est plus riche que l'entrée favorite mémorisée :
+            // on la met à jour pour que l'écran des favoris en bénéficie.
+            favorites.enrich(meal)
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+}
+
+// MARK: - Liens externes
+
+/// Ouvre une vidéo YouTube, en privilégiant l'application native.
+///
+/// `youtube://` ouvre l'app YouTube si elle est installée ; sinon on bascule
+/// sur l'URL web. Sans ce repli, le bouton ne ferait rien sur un appareil
+/// dépourvu de YouTube.
+@MainActor
+enum ExternalLink {
+
+    static func openYouTube(videoID: String, using openURL: OpenURLAction) {
+        guard let web = URL(string: "https://www.youtube.com/watch?v=\(videoID)") else {
+            return
+        }
+
+        guard let app = URL(string: "youtube://video?v=\(videoID)") else {
+            openURL(web)
+            return
+        }
+
+        // `accepted` vaut `false` si aucune application ne gère le schéma.
+        openURL(app) { accepted in
+            if !accepted { openURL(web) }
+        }
+    }
+
+    static func open(_ urlString: String, using openURL: OpenURLAction) {
+        guard let url = URL(string: urlString) else { return }
+        openURL(url)
     }
 }
 
@@ -65,6 +101,7 @@ struct RecipeDetailsScreen: View {
 
     @StateObject private var viewModel: RecipeDetailsViewModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
 
     init(meal: Meal, service: MealService = LiveMealService()) {
         _viewModel = StateObject(
@@ -146,6 +183,7 @@ struct RecipeDetailsScreen: View {
                     .frame(height: 20.hp())
             } else {
                 titleBlock
+                linksBlock
                 ingredientsBlock
                 instructionsBlock
             }
@@ -183,6 +221,85 @@ struct RecipeDetailsScreen: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .transition(.move(edge: .bottom).combined(with: .opacity))
         .animation(detailAnimation(delay: 0.2), value: viewModel.meal.name)
+    }
+
+    /// Boutons vers la vidéo et la fiche source.
+    ///
+    /// ⚠️  Ajout : l'app React Native récupère `strYoutube` et `strSource`
+    /// (elle copie d'ailleurs la recette via un `Share` quand `strSource`
+    /// existe) mais n'affiche aucun lien. Les deux champs étaient donc
+    /// récupérés pour rien.
+    ///
+    /// Le bloc disparaît entièrement si la recette n'a ni vidéo ni source :
+    /// `SomeMeals` en est dépourvue, et un bouton désactivé ferait moins bien
+    /// qu'une absence de bouton.
+    @ViewBuilder
+    private var linksBlock: some View {
+        if viewModel.meal.youtubeVideoID != nil || viewModel.meal.sourceURL != nil {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Watch & Cook")
+                    .font(Typo.detailSectionTitle)
+                    .foregroundStyle(Theme.neutral700)
+
+                VStack(spacing: 12) {
+                    if let videoID = viewModel.meal.youtubeVideoID {
+                        linkButton(
+                            title: "Watch Video",
+                            systemImage: "play.rectangle.fill",
+                            tint: .red
+                        ) {
+                            ExternalLink.openYouTube(videoID: videoID, using: openURL)
+                        }
+                    }
+
+                    if let source = viewModel.meal.sourceURL {
+                        linkButton(
+                            title: "Original Recipe",
+                            systemImage: "safari.fill",
+                            tint: Theme.accent
+                        ) {
+                            ExternalLink.open(source, using: openURL)
+                        }
+                    }
+                }
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .animation(detailAnimation(delay: 0.25), value: viewModel.meal.youtubeVideoID)
+        }
+    }
+
+    private func linkButton(
+        title: String,
+        systemImage: String,
+        tint: Color,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 2.hp()))
+                    .foregroundStyle(tint)
+                    .frame(width: 3.5.hp(), height: 3.5.hp())
+                    .background(tint.opacity(0.1), in: RoundedRectangle(cornerRadius: 10))
+
+                Text(title)
+                    .font(Typo.ingredientName)
+                    .foregroundStyle(Theme.neutral800)
+
+                Spacer(minLength: 8)
+
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 1.4.hp(), weight: .semibold))
+                    .foregroundStyle(Theme.neutral500)
+            }
+            .padding(12)
+            .background(Theme.cardPlaceholder, in: RoundedRectangle(cornerRadius: 16))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PressableStyle())
+        .accessibilityLabel(title)
     }
 
     private var ingredientsBlock: some View {

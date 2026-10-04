@@ -27,6 +27,7 @@ import SwiftUI
 
 enum Route: Hashable {
     case home
+    case favorites
     case recipeDetails(Meal)
 }
 
@@ -38,13 +39,14 @@ extension Route {
     /// lieu de traverser l'accueil à chaque fois.
     ///
     ///     xcrun simctl launch booted com.armelbogue.foodpad -startScreen home
+    ///     xcrun simctl launch booted com.armelbogue.foodpad -startScreen favorites
     ///     xcrun simctl launch booted com.armelbogue.foodpad -startScreen details
     ///
     /// Sans argument, la pile est vide et l'app démarre sur l'écran d'accueil
     /// (comportement normal).
     ///
-    /// ⚠️  Le raccourci `details` utilise les données de `MockMealService` :
-    /// il n'a pas vocation à être utilisé en production.
+    /// ⚠️  Les raccourcis utilisent les données de `MockMealService` : ils
+    /// n'ont pas vocation à être utilisés en production.
     static func initialStack(from arguments: [String] = ProcessInfo.processInfo.arguments) -> [Route] {
         guard let index = arguments.firstIndex(of: "-startScreen"),
               arguments.indices.contains(index + 1) else {
@@ -54,6 +56,8 @@ extension Route {
         switch arguments[index + 1] {
         case "home":
             return [.home]
+        case "favorites":
+            return [.home, .favorites]
         case "details":
             return [.home, .recipeDetails(MockMealService.detailedMeals[0])]
         default:
@@ -70,7 +74,12 @@ struct FoodPadApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
-                .task { Diagnostics.reset() }
+                .task {
+                    Diagnostics.reset()
+                    #if DEBUG
+                    DevTools.seedFavoritesIfRequested()
+                    #endif
+                }
         }
     }
 }
@@ -83,7 +92,15 @@ struct RootView: View {
     /// `MockMealService`, hors ligne.
     var service: MealService = LiveMealService()
 
-    @State private var path: [Route] = Route.initialStack()
+    @State private var path: [Route] = {
+        #if DEBUG
+        return Route.initialStack()
+        #else
+        // `-startScreen` n'existe pas en Release : l'app démarre toujours sur
+        // l'écran d'accueil.
+        return []
+        #endif
+    }()
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -96,6 +113,13 @@ struct RootView: View {
                 switch route {
                 case .home:
                     HomeScreen(service: service) { meal in
+                        path.append(.recipeDetails(meal))
+                    } onOpenFavorites: {
+                        path.append(.favorites)
+                    }
+
+                case .favorites:
+                    FavoritesScreen { meal in
                         path.append(.recipeDetails(meal))
                     }
 

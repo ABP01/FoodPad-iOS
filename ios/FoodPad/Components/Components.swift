@@ -151,21 +151,68 @@ struct CategoryBar: View {
 /// puis les deux lignes de titre.
 ///
 /// Équivalent du haut de `HomeScreen.js`.
+///
+/// ⚠️  Dans l'app d'origine ces deux éléments sont de simples `Image` sans
+/// gestionnaire d'appui : rien ne se passait. Ils deviennent ici des `Button`
+/// — l'icône ouvre les filtres, l'avatar les favoris.
 struct HomeHeader: View {
+
+    /// `true` si un filtre autre que « tout afficher » est actif. Ajoute un
+    /// point d'accent sur l'icône pour que le filtre en cours soit visible
+    /// d'un coup d'œil.
+    var isFilterActive: Bool = false
+
+    /// Nombre de favoris, affiché en pastille sur l'avatar.
+    var favoritesCount: Int = 0
+
+    var onOpenFilters: () -> Void
+    var onOpenFavorites: () -> Void
 
     var body: some View {
         HStack {
-            Image(systemName: "line.3.horizontal.decrease")
-                .font(.system(size: 2.2.hp(), weight: .regular))
-                .foregroundStyle(.gray)
+            Button(action: onOpenFilters) {
+                Image(systemName: "line.3.horizontal.decrease")
+                    .font(.system(size: 2.2.hp(), weight: .regular))
+                    .foregroundStyle(isFilterActive ? Theme.accent : .gray)
+                    .frame(width: 5.hp(), height: 5.hp())
+                    .overlay(alignment: .topTrailing) {
+                        if isFilterActive {
+                            Circle()
+                                .fill(Theme.accent)
+                                .frame(width: 6, height: 6)
+                                .offset(x: 4, y: -2)
+                        }
+                    }
+            }
+            .buttonStyle(PressableStyle())
+            .accessibilityLabel(isFilterActive ? "Filtres (actifs)" : "Filtres")
 
             Spacer()
 
-            Image("Avatar")
-                .resizable()
-                .scaledToFill()
-                .frame(width: 5.hp(), height: 5.hp())
-                .clipShape(Circle())
+            Button(action: onOpenFavorites) {
+                Image("Avatar")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 5.hp(), height: 5.hp())
+                    .clipShape(Circle())
+                    .overlay(alignment: .topTrailing) {
+                        // Pastille de compteur, seulement s'il y a des favoris.
+                        if favoritesCount > 0 {
+                            Text("\(min(favoritesCount, 99))")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundStyle(.white)
+                                .monospacedDigit()
+                                .padding(.horizontal, 4)
+                                .frame(minWidth: 14)
+                                .background(Theme.accent, in: Capsule())
+                                .offset(x: 6, y: -6)
+                        }
+                    }
+            }
+            .buttonStyle(PressableStyle())
+            .accessibilityLabel(favoritesCount > 0
+                                ? "Mes favoris (\(favoritesCount))"
+                                : "Mes favoris")
         }
     }
 }

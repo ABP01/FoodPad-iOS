@@ -130,11 +130,11 @@ de fichier.
 │       ├── DesignSystem/      # Écran de référence des tokens   (phase 1)
 │       ├── Models/            # Meal, Category, Ingredient      (phase 2)
 │       ├── Services/          # MealService, cache, favoris     (phase 2)
-│       ├── Components/        # MasonryGrid, RecipeCard, Cache… (phases 5-7)
-│       ├── Screens/           # Welcome, Home, RecipeDetails    (phases 3-6)
-│       └── Resources/         # food-logo.json, splash.png
+│       ├── Components/        # MasonryGrid, RecipeCard, Cache, FilterSheet… (5-7, 9)
+│       ├── Screens/           # Welcome, Home, RecipeDetails, Favorites (3-6, 9)
+│       └── Resources/         # food-logo.json
 ├── docs/                      # Captures d'écran de la version native
-└── scripts/                   # Utilitaires de vérification
+└── scripts/                   # inspect-screenshot.py, generate-assets.py
 ```
 
 ---
@@ -158,10 +158,13 @@ inventaire de l'app, design system extrait, 9 phases, pièges connus.
 | 6 — Fiche recette | ✅ |
 | 7 — Cache + finitions | ✅ |
 | 8 — Publication | ✅ |
+| 9 — Boutons fonctionnels | ✅ |
 
-**9 phases terminées, 19 fichiers Swift (2 708 lignes).** Écarts assumés avec la version RN :
-favoris persistés (le RN les perd), recherche rendue fonctionnelle, et le
-`useEffect` sans dépendances de l'app RN corrigé.
+**10 phases terminées, 22 fichiers Swift (3 556 lignes), 0 avertissement** en Debug
+comme en Release. Écarts assumés avec la version RN : favoris persistés (le RN les
+perd), recherche rendue fonctionnelle, `useEffect` sans dépendances corrigé,
+écran « Mes favoris » et feuille de filtres ajoutés (les boutons qui les ouvrent
+ne faisaient rien), et visuels d'origine régénérés (voir plus bas).
 
 ### Lancer la version native
 
@@ -174,10 +177,16 @@ xcodebuild -project FoodPad.xcodeproj -scheme FoodPad \
 
 xcrun simctl install booted /tmp/fp-dd/Build/Products/Debug-iphonesimulator/FoodPad.app
 
-# Démarrage normal, ou jump direct à un écran pour develops :
+# Démarrage normal, ou jump direct à un écran pour développer :
 xcrun simctl launch booted com.armelbogue.foodpad
 xcrun simctl launch booted com.armelbogue.foodpad -startScreen home
+xcrun simctl launch booted com.armelbogue.foodpad -startScreen favorites
 xcrun simctl launch booted com.armelbogue.foodpad -startScreen details
+
+# Injecter des favoris pour voir l'écran correspondant rempli
+# (impossible sans ça : le magasin démarre vide et on ne peut pas cliquer)
+xcrun simctl launch booted com.armelbogue.foodpad \
+  -startScreen favorites -seedFavorites 6
 
 # Capture
 xcrun simctl io booted screenshot docs/mon-ecran.png
@@ -185,6 +194,11 @@ xcrun simctl io booted screenshot docs/mon-ecran.png
 # Analyse automatique du rendu (sans l'ouvrir)
 python3 scripts/inspect-screenshot.py docs/mon-ecran.png
 ```
+
+Ces arguments de lancement n'existent qu'en configuration **Debug** : le fichier
+`Components/DevTools.swift` est entièrement encadré par `#if DEBUG`, et
+`-startScreen` n'est lu que dans cette configuration. L'app livrée démarre
+toujours sur l'écran d'accueil.
 
 
 ---
@@ -196,6 +210,12 @@ python3 scripts/inspect-screenshot.py docs/mon-ecran.png
 | Welcome | Accueil | Fiche recette |
 | --- | --- | --- |
 | ![Welcome](docs/native-welcome.png) | ![Accueil](docs/native-home.png) | ![Fiche](docs/native-details.png) |
+
+Écrans ajoutés en phase 9 :
+
+| Favoris | Favoris (vide) | Accueil filtré |
+| --- | --- | --- |
+| ![Favoris](docs/native-favorites.png) | ![Vide](docs/native-favorites-empty.png) | ![Filtre](docs/native-filter-favorites.png) |
 
 Écran de référence du design system (phases 0-1) :
 ![Design system](docs/phase1-design-system.png)
@@ -212,12 +232,18 @@ python3 scripts/inspect-screenshot.py docs/mon-ecran.png
 
 ## 🛤 Feuille de route
 
-- [ ] Brancher réellement la barre de recherche (filtrage côté API via `search.php`)
-- [ ] Persister les favoris avec `AsyncStorage`
+Terminé côté natif : barre de recherche branchée sur `search.php`, favoris
+persistés, cache disque des images, icône et visuels d'en-tête régénérés.
+
+Reste à faire :
+
+- [ ] Ajouter Lottie (`#if canImport(Lottie)` est déjà en place) — la dépendance
+      SPM n'a pas pu être résolue depuis cette machine, à faire depuis Xcode
 - [ ] Mode hors ligne complet avec cache des réponses JSON
+- [ ] Rendre l'app sensible aux autres tailles d'écran : `hp()` est relatif à la
+      hauteur, donc le rendu se dégrade hors portrait (voir MIGRATION_SWIFT.md § 5.3)
 - [ ] Ajouter un système de notes / commentaires
-- [ ] Re-lier le projet à ton compte Expo (`npx eas init`) puis publier sur l'App Store et le Play Store via EAS Build
-- [ ] Remplacer les images de marque restantes (`assets/icon.png`, `assets/splash.png`, `assets/lottie/food-logo.json`) par des visuels FoodPad
+- [ ] Publier sur l'App Store
 
 ---
 

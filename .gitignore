@@ -38,6 +38,9 @@ yarn-error.*
 .kilo/
 .qodo/
 
+# Editeurs
+.vscode/
+
 # Xcode (phase 0+)
 build/
 DerivedData/
