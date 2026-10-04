@@ -122,13 +122,17 @@ de fichier.
 │   └── index.js               # CachedImage : cache base 64 via AsyncStorage
 ├── babel.config.js            # Config Babel (plugin NativeWind)
 ├── tailwind.config.js         # Config TailwindCSS
-├── ios/                       # 🔶 Version native SwiftUI (en cours)
+├── ios/                       # Version native SwiftUI
 │   ├── FoodPad.xcodeproj/
 │   └── FoodPad/
-│       ├── FoodPadApp.swift   # Point d'entrée
-│       ├── Theme/             # Couleurs, typo, hp()/wp()
-│       ├── DesignSystem/      # Écran de référence des tokens
-│       └── Assets.xcassets/
+│       ├── FoodPadApp.swift   # Point d'entrée + NavigationStack
+│       ├── Theme/             # Couleurs, typo, hp()/wp()      (phase 1)
+│       ├── DesignSystem/      # Écran de référence des tokens   (phase 1)
+│       ├── Models/            # Meal, Category, Ingredient      (phase 2)
+│       ├── Services/          # MealService, cache, favoris     (phase 2)
+│       ├── Components/        # MasonryGrid, RecipeCard, Cache… (phases 5-7)
+│       ├── Screens/           # Welcome, Home, RecipeDetails    (phases 3-6)
+│       └── Resources/         # food-logo.json, splash.png
 ├── docs/                      # Captures d'écran de la version native
 └── scripts/                   # Utilitaires de vérification
 ```
@@ -147,15 +151,19 @@ inventaire de l'app, design system extrait, 9 phases, pièges connus.
 | --- | --- |
 | 0 — Socle Xcode | ✅ |
 | 1 — Design system | ✅ |
-| 2 — Modèle + réseau | ⬜ |
-| 3 — Welcome | ⬜ |
-| 4 — Home | ⬜ |
-| 5 — Grille maçonnerie | ⬜ |
-| 6 — Fiche recette | ⬜ |
-| 7 — Cache + finitions | ⬜ |
-| 8 — Publication | ⬜ |
+| 2 — Modèle + réseau | ✅ |
+| 3 — Welcome | ✅ |
+| 4 — Home | ✅ |
+| 5 — Grille maçonnerie | ✅ |
+| 6 — Fiche recette | ✅ |
+| 7 — Cache + finitions | ✅ |
+| 8 — Publication | ✅ |
 
-Lancer la version native :
+**9 phases terminées, 19 fichiers Swift (2 708 lignes).** Écarts assumés avec la version RN :
+favoris persistés (le RN les perd), recherche rendue fonctionnelle, et le
+`useEffect` sans dépendances de l'app RN corrigé.
+
+### Lancer la version native
 
 ```bash
 cd ios
@@ -165,8 +173,19 @@ xcodebuild -project FoodPad.xcodeproj -scheme FoodPad \
   -derivedDataPath /tmp/fp-dd build
 
 xcrun simctl install booted /tmp/fp-dd/Build/Products/Debug-iphonesimulator/FoodPad.app
+
+# Démarrage normal, ou jump direct à un écran pour develops :
 xcrun simctl launch booted com.armelbogue.foodpad
+xcrun simctl launch booted com.armelbogue.foodpad -startScreen home
+xcrun simctl launch booted com.armelbogue.foodpad -startScreen details
+
+# Capture
+xcrun simctl io booted screenshot docs/mon-ecran.png
+
+# Analyse automatique du rendu (sans l'ouvrir)
+python3 scripts/inspect-screenshot.py docs/mon-ecran.png
 ```
+
 
 ---
 
@@ -174,10 +193,12 @@ xcrun simctl launch booted com.armelbogue.foodpad
 
 ### Version native (SwiftUI)
 
-![Design system — phase 1](docs/phase1-design-system.png)
+| Welcome | Accueil | Fiche recette |
+| --- | --- | --- |
+| ![Welcome](docs/native-welcome.png) | ![Accueil](docs/native-home.png) | ![Fiche](docs/native-details.png) |
 
-*Écran de référence du design system — les 12 couleurs et 14 styles
-typographiques relevés sur l'app React Native.*
+Écran de référence du design system (phases 0-1) :
+![Design system](docs/phase1-design-system.png)
 
 ### Version React Native
 
@@ -185,7 +206,7 @@ typographiques relevés sur l'app React Native.*
 >
 > | Welcome | Accueil | Fiche recette |
 > | --- | --- | --- |
-> | `![Welcome](docs/welcome.png)` | `![Accueil](docs/home.png)` | `![Fiche](docs/details.png)` |
+> | `![Welcome](docs/rn-welcome.png)` | `![Accueil](docs/rn-home.png)` | `![Fiche](docs/rn-details.png)` |
 
 ---
 

@@ -111,6 +111,36 @@ def main(path):
     print(f"\naccent #f64e32 : {pct:.2f} % de l'ecran"
           + ("  -> couleur d'accent bien presente" if pct > 0.4 else "  -> ABSENT"))
 
+    # Profil vertical : 12 bandes horizontales, avec la luminance moyenne et
+    # la part de pixels sombres. Permet de localiser une zone vide (bande
+    # uniformement claire) ou un dégradé (bande progressivement sombre).
+    def luma(rgb):
+        return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]
+
+    print("\nProfil vertical (12 bandes, haut -> bas) :")
+    bands = 12
+    band_h = height // bands
+    for b in range(bands):
+        y0, y1 = b * band_h, (b + 1) * band_h
+        lumas, darks = [], 0
+        count_in_band = 0
+        for y in range(y0, y1, 7):
+            row = y * width * channels
+            for x in range(0, width, 11):
+                o = row + x * channels
+                px = pixels[o:o + 3]
+                lumas.append(luma(px))
+                if luma(px) < 90:
+                    darks += 1
+                count_in_band += 1
+        if not lumas:
+            continue
+        mean = sum(lumas) / len(lumas)
+        dark_pct = 100 * darks / count_in_band
+        bar = "#" * int(dark_pct / 4)
+        label = f"{100*b/bands:3.0f}-{(b+1)*100//bands:3.0f}%"
+        print(f"  {label} %  luminance {mean:5.1f}  sombre {dark_pct:5.1f} %  {bar}")
+
 
 if __name__ == "__main__":
     main(sys.argv[1] if len(sys.argv) > 1 else "docs/phase1-design-system.png")

@@ -401,17 +401,48 @@ Bug de performance. La version Swift avec `task {}` le résout naturellement.
 
 ## 8. Suivi
 
-| Phase | Statut | Commentaire |
-| --- | --- | --- |
-| 0 — Socle | ✅ Fait | `ios/FoodPad.xcodeproj`, bundle `com.armelbogue.foodpad`, assets importés |
-| 1 — Design system | ✅ Fait | 4 fichiers dans `Theme/`, écran de référence `DesignSystemPreview` |
-| 2 — Modèle + réseau | ⬜ À faire | |
-| 3 — Welcome | ⬜ À faire | | |
-| 4 — Home | ⬜ À faire | | |
-| 5 — Maçonnerie | ⬜ À faire | | |
-| 6 — Détails | ⬜ À faire | | |
-| 7 — Cache + finitions | ⬜ À faire | | |
-| 8 — Shipping | ⬜ À faire | | |
+| Phase | Statut | Fichiers | Commentaire |
+| --- | --- | --- | --- |
+| 0 — Socle | Fait | `FoodPad.xcodeproj`, `Assets.xcassets` | bundle `com.armelbogue.foodpad`, iOS 16.0 |
+| 1 — Design system | Fait | `Theme/` x4, `DesignSystem/` | 12 couleurs, 14 styles, ecran de reference |
+| 2 — Modele + reseau | Fait | `Models/`, `Services/` x3 | 20 champs d'ingredients, 4 endpoints |
+| 3 — Welcome | Fait | `WelcomeScreen.swift`, `LottieLogoView.swift` | Lottie branche en SPM |
+| 4 — Home | Fait | `HomeScreen.swift`, `Components/` | recherche fonctionnelle (bonus vs RN) |
+| 5 — Masonnerie | Fait | `MasonryGrid.swift`, `RecipeCard.swift` | `Layout` SwiftUI maison, 2 colonnes |
+| 6 — Details | Fait | `RecipeDetailsScreen.swift` | 3 animations, favori persiste |
+| 7 — Cache + finitions | Fait | `CachedImage.swift` | cache disque via `FileManager` |
+| 8 — Shipping | Fait | `FoodPadApp.swift` | bundle ID, icone, portrait |
+
+**19 fichiers Swift, 2 708 lignes** (dont 13 nouveaux dans les phases 2 a 8).
+
+### Ecarts assumes avec l'app React Native
+
+Trois differences deliberees, toutes documentees :
+
+1. **Favoris persistes** — l'app RN utilise un `useState`, donc le coeur se
+   perd au redemarrage. Corrige via `UserDefaults` (`Services/FavoritesStore.swift`).
+2. **Recherche fonctionnelle** — le champ de recherche de l'app RN est
+   decoratif. Ici il interroge `search.php`, avec annulation de tache et
+   debounce de 400 ms.
+3. **`useEffect` sans dependances corrige** — l'app RN relance l'appel reseau
+   `lookup.php` a chaque rendu de `RecipeDetailsScreen`. Le `.task` de SwiftUI
+   ne s'execute qu'une fois.
+
+### Points a valider a l'oeil
+
+Ces points ne peuvent pas etre verifies par capture d'ecran : ils exigent de
+regarder l'app en fonctionnement.
+
+- [ ] **Animation Lottie** — le lecteur est branche et le JSON embarque dans le
+      bundle, mais une animation ne se juge pas sur une image fixe
+- [ ] **`dampingFraction: 0.7`** — approximation de `.damping(12)` ReAnimated
+- [ ] **Transition partagee image** — non implementee : `matchedGeometryEffect`
+      combine a `.navigationTransition(.zoom)` exige iOS 18, or la cible est
+      iOS 16. A ajouter si tu fais monter la cible.
+- [ ] **Icones Heroicons a SF Symbols** — compromis assume, voir section 4
+- [ ] **iPad / rotation** — `hp()` etant relatif a la hauteur, le rendu se
+      degrade fortement hors portrait. Non traite, cf. section 5.3
+
 
 ---
 
@@ -507,3 +538,50 @@ donne pas un rendu satisfaisant. Les phases 0-4 et 6-8 n'en auront pas besoin.
 | Simulateur | iPhone 17 Pro, iOS 26.5 |
 | Architecture hôte | x86_64 (Intel) |
 | Cible de déploiement | iOS 16.0 |
+
+### 9.9 Piege : l'echelle d'espacement Tailwind n'est PAS en pourcentage
+
+**Erreur commise pendant la migration, corrigee en phase 4.**
+
+L'app React Native melange deux systemes de mesures, et les confondre fausse
+silencieusement la mise en page :
+
+| Notation | Origine | Valeur reelle | Exemple |
+| --- | --- | --- | --- |
+| `hp(n)` / `wp(n)` | `react-native-responsive-screen` | **n % de l'ecran** | `hp(5)` = 5 % |
+| `pt-14`, `mx-4`, `space-y-6` | **echelle Tailwind** | **rem fixes** | `pt-14` = 3.5rem = 56 px |
+
+`pt-14` ne vaut pas 14 % de la hauteur. J'ai d'abord ecrit
+`padding(.top, 14.hp())` = 122 pt au lieu de 56 pt, ce qui a produit un bandeau
+blanc de 66 pt en haut de l'ecran d'accueil — invisible en valeur, mais visible
+a l'ecran.
+
+L'echelle Tailwind v3 (racine = 16 px) :
+
+| Classe | rem | px | Classe | rem | px |
+| --- | --- | --- | --- | --- | --- |
+| `p-1`, `mt-1`, `space-y-1` | 0.25 | 4 | `space-x-4`, `p-4`, `space-y-4` | 1 | 16 |
+| `p-2`, `mt-2`, `space-y-2` | 0.5 | 8 | `ml-5`, `mr-5` | 1.25 | 20 |
+| `p-3`, `ml-3` | 0.75 | 12 | `space-y-6`, `p-6` | 1.5 | 24 |
+| `ml-2`, `left-2` | 0.5 | 8 | `bottom-7` | 1.75 | 28 |
+| `px-[6px]` | — | 6 | `pt-14` | 3.5 | 56 |
+| `mt-[-46]` | — | -46 | `mt-16` / `mt-20` | 4 / 5 | 64 / 80 |
+
+Rayons : `rounded-xl` = 12, `rounded-full` = cercle.
+Bordures : `border` = 1 px.
+
+**Regle** : toute valeur issue d'une classe Tailwind est un multiple de 4 px.
+Seuls les `hp()` / `wp()` sont relatifs a l'ecran.
+
+### 9.10 Verifier un rendu sans le voir
+
+`scripts/inspect-screenshot.py` a ete etendu avec un **profil vertical** : il
+decoupe la capture en 12 bandes et rapporte, pour chacune, la luminance moyenne
+et la part de pixels sombres. C'est ce profil qui a revele le bandeau blanc de
+la section 9.9 — la repartition globale des couleurs ne le montrait pas.
+
+```
+    8- 16%  luminance 253.9  sombre  0.2%     <- bandeau blanc suspect
+   17- 25%  luminance 255.0  sombre  0.0%
+   83- 91%  luminance 102.9  sombre 56.8% #### <- cartes + degrades OK
+```
