@@ -401,14 +401,109 @@ Bug de performance. La version Swift avec `task {}` le résout naturellement.
 
 ## 8. Suivi
 
-| Phase | Statut | Date | Commentaire |
-| --- | --- | --- | --- |
-| 0 — Socle | ⬜ À faire | | |
-| 1 — Design system | ⬜ À faire | | |
-| 2 — Modèle + réseau | ⬜ À faire | | |
+| Phase | Statut | Commentaire |
+| --- | --- | --- |
+| 0 — Socle | ✅ Fait | `ios/FoodPad.xcodeproj`, bundle `com.armelbogue.foodpad`, assets importés |
+| 1 — Design system | ✅ Fait | 4 fichiers dans `Theme/`, écran de référence `DesignSystemPreview` |
+| 2 — Modèle + réseau | ⬜ À faire | |
 | 3 — Welcome | ⬜ À faire | | |
 | 4 — Home | ⬜ À faire | | |
 | 5 — Maçonnerie | ⬜ À faire | | |
 | 6 — Détails | ⬜ À faire | | |
 | 7 — Cache + finitions | ⬜ À faire | | |
 | 8 — Shipping | ⬜ À faire | | |
+
+---
+
+## 9. Notes d'implémentation
+
+### 9.1 Le projet Xcode est écrit à la main
+
+Aucun outil de génération (`xcodegen`, `tuist`) n'est installé sur cette machine,
+et aucune dépendance SPM n'est requise pour les phases 0-1. Le fichier
+`ios/FoodPad.xcodeproj/project.pbxproj` est donc **écrit à la main**.
+
+Il utilise `objectVersion = 77` avec un `PBXFileSystemSynchronizedRootGroup`
+(le dossier `ios/FoodPad/` est synchronisé automatiquement). Conséquence
+pratique : **tu peux créer de nouveaux `.swift` et de nouveaux dossiers sans
+toucher au `.pbxproj`** — Xcode les ajoutera tout seul à la target.
+
+⚠️ Nécessite **Xcode 16+**. Une version antérieure refusera de lire le projet.
+
+### 9.2 `hp()` s'appuie sur `UIWindowScene.screen`
+
+L'app React Native lit les dimensions d'écran une fois au montage.
+L'implémentation Swift (`Theme/Responsive.swift`) relit
+`UIApplication.shared.connectedScenes` **à chaque appel**, ce qui suit le
+changement d'orientation sans état à invalider. `UIScreen.main` est évité car
+c'est une API dépréciée sur les SDK récents.
+
+### 9.3 Valeurs vérifiées au rendu réel
+
+La capture de `DesignSystemPreview` confirme que les hypothèses de la §2 sont
+correctes : les quatre gris `neutral-500/600/700/800` **et** l'accent `#f64e32`
+apparaissent effectivement à l'écran. La correspondance avec la palette
+Tailwind v3 par défaut est donc validée.
+
+### 9.4 Vérifier un rendu sans l'ouvrir à l'œil
+
+`scripts/inspect-screenshot.py` décode une capture PNG (zlib + struct, sans
+aucune dépendance) et rapporte la répartition des couleurs. Pratique pour
+contrôler qu'un écran n'est ni vide ni bloqué sur une seule teinte :
+
+```bash
+python3 scripts/inspect-screenshot.py docs/phase1-design-system.png
+```
+
+### 9.5 Lancer et capturer
+
+```bash
+# Build
+cd ios
+xcodebuild -project FoodPad.xcodeproj -scheme FoodPad \
+  -sdk iphonesimulator \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  -derivedDataPath /tmp/fp-dd build
+
+# Installer et lancer
+xcrun simctl install booted /tmp/fp-dd/Build/Products/Debug-iphonesimulator/FoodPad.app
+xcrun simctl launch booted com.armelbogue.foodpad
+
+# Capturer
+xcrun simctl io booted screenshot docs/mon-ecran.png
+```
+
+Aucune signature de code n'est requise pour le simulateur (signature ad hoc
+automatique). Pour un build sur appareil réel, renseigner une `DEVELOPMENT_TEAM`
+dans les build settings de la target.
+
+### 9.6 Dépendances SPM
+
+Aucune pour l'instant. À partir de la phase 3 :
+
+| Package | URL | Licence | Pourquoi |
+| --- | --- | --- | --- |
+| Lottie | `https://github.com/airbnb/lottie-ios` | MIT | Lecture de `food-logo.json` |
+
+Ajout : Xcode → *Project → Add Package Dependencies…*, ou clic droit sur le
+`.xcodeproj`. Une fois le paquet ajouté, le `project.pbxproj` contiendra une
+section `XCRemoteSwiftPackageReference` — je peux aussi l'écrire directement.
+
+### 9.7 Repli UIKit
+
+La décision « SwiftUI d'abord, UIKit si besoin » reste ouverte. Le seul endroit
+où un repli est plausible est la **phase 5** (grille en maçonnerie) :
+un `UIViewRepresentable` enveloppant une `UICollectionView` avec un
+`UICollectionViewLayout` personnalisé, si le protocole `Layout` de SwiftUI ne
+donne pas un rendu satisfaisant. Les phases 0-4 et 6-8 n'en auront pas besoin.
+
+### 9.8 Environnement de référence
+
+| Élément | Valeur |
+| --- | --- |
+| Xcode | 26.5 (build 17F42) |
+| Swift | 6.3.2 |
+| SDK | iOS 26.5 |
+| Simulateur | iPhone 17 Pro, iOS 26.5 |
+| Architecture hôte | x86_64 (Intel) |
+| Cible de déploiement | iOS 16.0 |

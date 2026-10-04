@@ -121,12 +121,65 @@ de fichier.
 ├── utils/
 │   └── index.js               # CachedImage : cache base 64 via AsyncStorage
 ├── babel.config.js            # Config Babel (plugin NativeWind)
-└── tailwind.config.js         # Config TailwindCSS
+├── tailwind.config.js         # Config TailwindCSS
+├── ios/                       # 🔶 Version native SwiftUI (en cours)
+│   ├── FoodPad.xcodeproj/
+│   └── FoodPad/
+│       ├── FoodPadApp.swift   # Point d'entrée
+│       ├── Theme/             # Couleurs, typo, hp()/wp()
+│       ├── DesignSystem/      # Écran de référence des tokens
+│       └── Assets.xcassets/
+├── docs/                      # Captures d'écran de la version native
+└── scripts/                   # Utilitaires de vérification
+```
+
+---
+
+## 🔶 Migration native iOS
+
+Une réécriture complète en **Swift / SwiftUI** est en cours, dans le dossier
+`ios/`. L'app React Native ci-dessus sert de référence visuelle.
+
+👉 **[MIGRATION_SWIFT.md](./MIGRATION_SWIFT.md)** — plan de travail détaillé :
+inventaire de l'app, design system extrait, 9 phases, pièges connus.
+
+| Phase | Statut |
+| --- | --- |
+| 0 — Socle Xcode | ✅ |
+| 1 — Design system | ✅ |
+| 2 — Modèle + réseau | ⬜ |
+| 3 — Welcome | ⬜ |
+| 4 — Home | ⬜ |
+| 5 — Grille maçonnerie | ⬜ |
+| 6 — Fiche recette | ⬜ |
+| 7 — Cache + finitions | ⬜ |
+| 8 — Publication | ⬜ |
+
+Lancer la version native :
+
+```bash
+cd ios
+xcodebuild -project FoodPad.xcodeproj -scheme FoodPad \
+  -sdk iphonesimulator \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  -derivedDataPath /tmp/fp-dd build
+
+xcrun simctl install booted /tmp/fp-dd/Build/Products/Debug-iphonesimulator/FoodPad.app
+xcrun simctl launch booted com.armelbogue.foodpad
 ```
 
 ---
 
 ## 🎬 Captures d'écran
+
+### Version native (SwiftUI)
+
+![Design system — phase 1](docs/phase1-design-system.png)
+
+*Écran de référence du design system — les 12 couleurs et 14 styles
+typographiques relevés sur l'app React Native.*
+
+### Version React Native
 
 > À compléter — déposez vos captures dans `docs/` et référencez-les ici :
 >
