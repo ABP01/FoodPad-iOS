@@ -4,15 +4,13 @@
 //
 //  Carte d'une recette dans la grille en maçonnerie.
 //
-//  Traduction fidèle de `src/components/RecipesCard.js` :
+//  Règles de mise en page :
 //
-//  ```js
-//  paddingRight: isEven ? 8 : 0          // isEven = index % 2 == 0
-//  height: index % 3 == 0 ? hp(25) : hp(35)
-//  borderRadius: 35
-//  LinearGradient transparent -> rgba(0,0,0,0.9), hauteur hp(20)
-//  titre : strMeal.length > 20 ? slice(0,20) + "..." : strMeal
-//  ```
+//    - marge interne alternée (index pair → 8 pt), pour décaler les colonnes
+//    - hauteur : 25 % de l'écran si `index % 3 == 0`, sinon 35 %
+//    - coins à 35
+//    - dégradé transparent → noir 90 %, sur les 20 % inférieurs
+//    - titre tronqué à 20 caractères, « ... » au-delà
 //
 
 import SwiftUI
@@ -97,8 +95,6 @@ struct RecipeCard: View {
 // MARK: - Grille complète
 
 /// La grille complète : en-tête « N Recipes » + maçonnerie.
-///
-/// Équivalent de `src/components/Recipes.js`.
 struct RecipesGrid: View {
 
     let meals: [Meal]

@@ -2,13 +2,11 @@
 //  Typography.swift
 //  FoodPad
 //
-//  Équivalent Swift des `className` Tailwind de l'app React Native.
-//
-//  L'app d'origine n'embarque aucune police : elle utilise la police système
+//  Aucune police n'est embarquée : l'app utilise la police système
 //  (San Francisco sur iOS) et ne fait varier que la **graisse** et la **taille**.
-//  Traduction : `Font.system(size:weight:)`.
+//  D'où `Font.system(size:weight:)`.
 //
-//  Correspondance des graisses Tailwind → SwiftUI :
+//  Correspondance des graisses → SwiftUI :
 //
 //      font-medium   → .medium
 //      font-semibold → .semibold
@@ -117,7 +115,7 @@ enum Typo {
 
 // MARK: - Rendu d'une ligne
 
-/// Aperçu d'un style typographique : échantillon + valeur relevée sur le RN.
+/// Aperçu d'un style typographique : échantillon + valeur mesurée.
 struct TypeSample: View {
     let label: String
     let sample: String

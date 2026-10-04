@@ -4,22 +4,18 @@ Génère les visuels de FoodPad qui manquent.
 
 Pourquoi ce script existe
 -------------------------
-Les images fournies avec le template React Native d'origine sont des
-**placeholders vides** :
+Les visuels d'origine étaient des **placeholders vides** :
 
-    assets/images/avatar.png     0,0 % de pixels opaques
-    assets/images/background.png 0,0 % (fichier identique à avatar.png,
-                                 même empreinte MD5)
-    assets/splash.png            0,2 %
-    AppIcon                      92,6 % de noir
+    avatar.png     0,0 % de pixels opaques
+    background.png 0,0 % (fichier identique à avatar.png, même MD5)
+    splash.png     0,2 %
+    AppIcon        92,6 % de noir
 
-Autrement dit : l'app d'origine n'affiche ni avatar, ni fond d'écran
-d'accueil, et son icône est un carré noir. Le portage SwiftUI rend
-correctement des images vides — c'est la source qui est vide.
+Autrement dit : ni avatar, ni fond d'écran d'accueil, et une icône en carré
+noir. Le rendu SwiftUI était correct — c'est la source qui était vide.
 
-On ne modifie pas les fichiers d'origine (ils restent dans `assets/`, comme
-référence de ce que faisait l'app RN). Ce script produit de vrais visuels dans
-le catalogue iOS.
+Ces fichiers ont été supprimés du dépôt (voir le tag `pre-rename-before-rn-purge`
+pour les retrouver) ; ce script produit de vrais visuels dans le catalogue iOS.
 
     python3 scripts/generate-assets.py
 

@@ -2,17 +2,14 @@
 //  CachedImage.swift
 //  FoodPad
 //
-//  Équivalent du composant `CachedImage` de l'app React Native
-//  (`utils/index.js`), qui convertit l'image en base 64 et la stocke dans
-//  `AsyncStorage`.
+//  Téléchargement d'images avec cache disque.
 //
-//  ⚠️  Différence volontaire : l'app d'origine écrit dans `AsyncStorage`, ce qui
-//  revient à écrire dans un stockage clé/valeur. Pour des images, on utilise
-//  `FileManager` (dossier Documents) — c'est le bon outil, et cela évite de
-//  saturer le stockage de préférences. Voir MIGRATION_SWIFT.md § Phase 7.
+//  ⚠️  Les fichiers vont sur le disque via `FileManager` (dossier Documents),
+//  pas dans `UserDefaults` : ce dernier est un stockage clé/valeur intended pour
+//  de petits réglages, il sature vite avec des images et ralentit au lancement.
 //
-//  Le comportement visible est identique : à la seconde visite, l'image
-//  s'affiche instantanément depuis le disque.
+//  Le comportement visible : à la seconde visite, l'image s'affiche
+//  instantanément depuis le disque.
 //
 
 import SwiftUI

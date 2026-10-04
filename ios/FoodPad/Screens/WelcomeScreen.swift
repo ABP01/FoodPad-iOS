@@ -2,9 +2,7 @@
 //  WelcomeScreen.swift
 //  FoodPad
 //
-//  Écran d'introduction.
-//  Traduction de `src/screens/WelcomeScreen.js`.
-//  Voir MIGRATION_SWIFT.md § Phase 3.
+//  Écran d'introduction : logo animé, nom de l'app, bouton « Get Started ».
 //
 
 import SwiftUI
@@ -74,8 +72,7 @@ struct WelcomeScreen: View {
 
 // MARK: - Effet de bouton
 
-/// Effet d'enfoncement simple. L'app React Native utilise `TouchableOpacity`
-/// (l'opacité varie au toucher) — on s'en approche avec un léger scale.
+/// Effet d'enfoncement simple : léger scale + baisse d'opacité au toucher.
 struct PressableStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
@@ -90,9 +87,8 @@ struct PressableStyle: ButtonStyle {
 
 /// Destination « Welcome » du `NavigationStack` racine.
 ///
-/// Dans l'app React Native, `Welcome` est `initialRouteName` de la pile et
-/// `Home` est empilé par-dessus : le bouton « Get Started » empile l'accueil.
-/// On reproduit ce comportement en naviguant vers `home`.
+/// `Welcome` est l'écran initial de la pile ; le bouton « Get Started » empile
+/// l'accueil par-dessus.
 struct WelcomeDestination {
     static let route = "welcome"
 }

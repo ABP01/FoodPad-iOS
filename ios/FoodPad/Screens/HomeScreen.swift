@@ -3,8 +3,6 @@
 //  FoodPad
 //
 //  Écran principal : en-tête, recherche, catégories, grille de recettes.
-//  Traduction de `src/screens/HomeScreen.js`.
-//  Voir MIGRATION_SWIFT.md § Phase 4.
 //
 
 import SwiftUI
@@ -281,7 +279,7 @@ struct HomeScreen: View {
     @ViewBuilder
     private var grid: some View {
         if viewModel.isLoading && !viewModel.hasAnyMeal {
-            // `mt-20` dans Recipes.js : 5rem = 80 px
+            // Marge haute de 80 pt sous la barre de recherche.
             Loading(topPadding: 80)
                 .frame(height: 30.hp())
         } else if viewModel.isFavoritesFilterHidingEverything {

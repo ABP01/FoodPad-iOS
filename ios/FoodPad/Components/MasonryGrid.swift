@@ -4,12 +4,8 @@
 //
 //  Grille en maçonnerie à 2 colonnes.
 //
-//  ⚠️  L'app React Native utilise `@react-native-seoul/masonry-list`, qui n'a
-//  pas d'équivalent natif. C'est le composant le plus coûteux à reconstruire
-//  (≈ 3 jours de charge estimée) — voir MIGRATION_SWIFT.md § Phase 5.
-//
-//  Stratégie retenue : un `Layout` SwiftUI natif (iOS 16+), plutôt qu'un
-//  paquet SPM tiers, pour garder le contrôle total sur la règle de placement.
+//  Implémentée comme un `Layout` SwiftUI natif (iOS 16+), plutôt qu'un paquet
+//  SPM tiers, pour garder le contrôle total sur la règle de placement.
 //
 //  Chaque élément est placé dans **la colonne la plus courte**. Les colonnes
 //  démarrent à la même hauteur en haut, contrairement à un `VStack` de
@@ -133,18 +129,13 @@ struct MasonryGrid: Layout {
     }
 }
 
-// MARK: - Règle de hauteur de l'app d'origine
+// MARK: - Règle de hauteur des cartes
 
 extension MasonryGrid {
 
-    /// Règle relevée sur `src/components/RecipesCard.js` :
-    ///
-    /// ```js
-    /// height: index % 3 == 0 ? hp(25) : hp(35)
-    /// ```
-    ///
-    /// - 1 carte sur 3 est « courte » (25 % de la hauteur d'écran),
-    /// - les 2 autres sont « longues » (35 %).
+    /// Une carte sur 3 est « courte » (25 % de la hauteur d'écran),
+    /// les deux autres sont « longues » (35 %). L'alternance casse
+    /// l'alignement vertical des deux colonnes.
     static let cardHeights: (Int) -> CGFloat = { index in
         index % 3 == 0 ? 25.hp() : 35.hp()
     }

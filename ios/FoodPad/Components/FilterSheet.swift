@@ -4,11 +4,6 @@
 //
 //  Feuille de filtres, ouverte depuis l'icône d'ajustement de l'accueil.
 //
-//  ⚠️  Cette icône est **décorative** dans l'app React Native d'origine
-//  (`HomeScreen.js` ne lui attache aucun `onPress`). La transformer en vrai
-//  contrôleur est donc un ajout, pas une restauration — cf. MIGRATION_SWIFT.md
-//  § 5.2.
-//
 //  Deux critères : une catégorie (comme la barre de catégories du dessus) et un
 //  interrupteur « favoris uniquement ».
 //

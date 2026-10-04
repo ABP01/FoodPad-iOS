@@ -4,11 +4,6 @@
 //
 //  Écran « Mes favoris », ouvert depuis l'avatar de l'accueil.
 //
-//  ⚠️  Écran entièrement nouveau : l'app React Native d'origine ne persiste
-//  pas les favoris, donc il n'a rien à afficher. Il est ajouté parce que le
-//  bouton avatar de `HomeScreen.js` est lui aussi décoratif, et qu'un bouton
-//  qui ne fait rien est pire qu'un bouton absent.
-//
 //  Le contenu s'affiche **hors ligne** : `FavoritesStore` conserve le nom et
 //  l'image de chaque favori, donc l'écran est complet dès la première seconde,
 //  avant tout appel réseau.

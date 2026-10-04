@@ -1,18 +1,28 @@
-# Plan de migration : React Native → Swift / SwiftUI
+# Notes de conception : FoodPad iOS
 
-> **Statut** : plan de travail
-> **Source** : app React Native 0.72 / Expo SDK 49 (dossier `src/`)
-> **Cible** : iOS natif, SwiftUI (iOS 16+), repli UIKit si nécessaire
-> **Objectif** : rendu visuel et comportement identiques à l'app actuelle
+> **Statut** : **archivé** — le travail est terminé (10 phases, voir § 8).
+> Ce document n'est plus un plan mais le journal de conception : il explique
+> *pourquoi* le code est comme il est.
+>
+> ⚠️  Il fait référence à une version React Native du projet qui n'existe plus
+> dans ce dépôt. Pour la retrouver : tag `pre-rename-before-rn-purge`.
+
+**À lire en priorité** si tu reprends le projet :
+
+| Section | Contenu |
+| --- | --- |
+| § 4 | Décisions arbitrées et pourquoi |
+| § 5 | Pièges connus, dont les bugs corrigés |
+| § 8 | Suivi, écarts assumés, ce qui reste à vérifier |
+| § 9 | Notes d'implémentation (dont `hp()`, échelle Tailwind, assets) |
 
 ---
 
-## 0. Ce qui va réellement se passer
+## 0. Portée du travail
 
-Il faut être clair sur un point : **ce n'est pas un portage, c'est une réécriture.**
-~700 lignes de JavaScript à traduire ligne par ligne en Swift. Aucun pixel n'est
-gratuit — chaque taille, chaque couleur, chaque animation doit être relevée puis
-rejouée à la main.
+Il s'agissait de **réécrire** l'application en Swift, pas de la porter ligne à
+ligne. Aucun pixel n'est gratuit — chaque taille, chaque couleur, chaque
+animation a dû être relevée puis rejouée à la main.
 
 Ce que la migration **gagne** : animations à 60/120 fps natives, accès aux
 APIs iOS, pas de couche de pont JS, taille d'app réduite, store-ready.
@@ -172,19 +182,18 @@ B dans une phase ultérieure. Ne jamais mélanger les deux dans une même vue.
 
 ### Phase 0 — Socle projet
 
-- [ ] Créer `FoodPad.xcodeproj` : SwiftUI App, **iOS 16.0+**, Swift 5.9
-- [ ] Dépendances SPM :
-      - [Lottie](https://github.com/airbnb/lottie-ios) (MIT)
-      - Heroicons (SVG officiels) ou SF Symbols — voir ci-dessous
-- [ ] *Target → General → Identity* : bundle ID `com.armelbogue.foodpad`
-- [ ] Importer les 5 assets dans un catalogue `Assets.xcassets`
-- [ ] Créer `Theme/` (couleurs, typo, `hp()`), `Models/`, `Services/`, `Screens/`, `Components/`
-- [ ] `App.swift` avec `NavigationStack`
+- [x] Créer `FoodPad.xcodeproj` : SwiftUI App, **iOS 16.0+**, Swift 5
+- [x] Dépendance SPM : [Lottie](https://github.com/airbnb/lottie-ios) (MIT),
+      sous `#if canImport(Lottie)`
+- [x] *Target → General → Identity* : bundle ID `com.armelbogue.foodpad`
+- [x] Importer les assets dans un catalogue `Assets.xcassets`
+- [x] Créer `Theme/` (couleurs, typo, `hp()`), `Models/`, `Services/`, `Screens/`, `Components/`
+- [x] `FoodPadApp.swift` avec `NavigationStack`
 
-**Icônes :** Heroicons a des sets SVG officiels et Apple en publie des versions
-compatibles SF Symbols. Pour une fidélité maximale, importer les SVG Heroicons
-comme templates. SF Symbols `chevron.left` / `heart` (variante `.fill`) sont un
-substitut acceptable — **valide le rendu avant d'aller plus loin.**
+**Icônes :** SF Symbols a été retenu plutôt que des SVG vectoriels tiers.
+Aucun paquet externe ne masque pas le coût d'une dépendance à maintenir, et
+`chevron.left` / `heart.fill` sont des équivalents directs. **Le rendu reste à
+valider à l'œil** avant d'aller plus loin.
 
 ### Phase 1 — Design system
 
@@ -309,7 +318,7 @@ substitut acceptable — **valide le rendu avant d'aller plus loin.**
 | 1 | `hp()` ou responsive natif ? | **Répliquer `hp()`** d'abord | Garantit l'identité visuelle ; migration du layout dans une phase séparée |
 | 2 | Version d'iOS cible | **16.0** | `Layout` + `NavigationStack` disponibles |
 | 3 | `@Observable` ou `ObservableObject` ? | **`ObservableObject`** | `@Observable` exige iOS 17 |
-| 4 | Heroicons ou SF Symbols ? | **Heroicons SVG** | Fidélité au design ; SF Symbols = compromis |
+| 4 | SF Symbols ou SVG vectoriels tiers ? | **SF Symbols** | Aucun paquet externe, équivalents directs (`chevron.left`, `heart.fill`) |
 | 5 | Grille : `Layout` maison ou paquet SPM ? | **`Layout` maison** | 100 % de contrôle sur la règle de placement, pas de dépendance à maintenir |
 | 6 | Persister les favoris ? | **Oui, `UserDefaults`** | ⚠️ L'app RN ne le fait **pas** — le cœur se perd à chaque relance. See ci-dessous |
 | 7 | Langue de l'UI | **Anglais** pour l'instant | L'app RN est en anglais ; la localisation FR est une phase séparée |
@@ -494,39 +503,9 @@ Cinq differences deliberees, toutes documentees :
    bouton qui ne fait rien est pire qu'un bouton absent.
 5. **Visuels manquants regeneres** — voir section 9.11.
 
-### Points a valider a l'oeil
-
-Ces points ne peuvent pas etre verifies par capture d'ecran : ils exigent de
-regarder l'app en fonctionnement.
-
-- [ ] **Animation Lottie** — le lecteur est branche et le JSON embarque dans le
-      bundle, mais une animation ne se juge pas sur une image fixe
-- [ ] **`dampingFraction: 0.7`** — approximation de `.damping(12)` Reanimated
-- [ ] **Transition partagee image** — non implementee : `matchedGeometryEffect`
-      combine a `.navigationTransition(.zoom)` exige iOS 18, or la cible est
-      iOS 16. A ajouter si tu fais monter la cible.
-- [ ] **Icones Heroicons a SF Symbols** — compromis assume, voir section 4
-- [ ] **iPad / rotation** — `hp()` etant relatif a la hauteur, le rendu se
-      degrade fortement hors portrait. Non traite, cf. section 5.3
 - [ ] **Gestes sur les nouveaux boutons** — fermeture du clavier, retour
       tactile, enchainement filtre → grille → fiche n'ont pas ete verifies
       tactilement (la verification automatisée ne peut pas cliquer)
-
-### Points a valider a l'oeil
-
-Ces points ne peuvent pas etre verifies par capture d'ecran : ils exigent de
-regarder l'app en fonctionnement.
-
-- [ ] **Animation Lottie** — le lecteur est branche et le JSON embarque dans le
-      bundle, mais une animation ne se juge pas sur une image fixe
-- [ ] **`dampingFraction: 0.7`** — approximation de `.damping(12)` ReAnimated
-- [ ] **Transition partagee image** — non implementee : `matchedGeometryEffect`
-      combine a `.navigationTransition(.zoom)` exige iOS 18, or la cible est
-      iOS 16. A ajouter si tu fais monter la cible.
-- [ ] **Icones Heroicons a SF Symbols** — compromis assume, voir section 4
-- [ ] **iPad / rotation** — `hp()` etant relatif a la hauteur, le rendu se
-      degrade fortement hors portrait. Non traite, cf. section 5.3
-
 
 ---
 
@@ -534,8 +513,8 @@ regarder l'app en fonctionnement.
 
 ### 9.1 Le projet Xcode est écrit à la main
 
-Aucun outil de génération (`xcodegen`, `tuist`) n'est installé sur cette machine,
-et aucune dépendance SPM n'est requise pour les phases 0-1. Le fichier
+Aucun outil de génération (`xcodegen`, `tuist`) n'est disponible, et aucune
+dépendance SPM n'est requise au-delà de Lottie. Le fichier
 `ios/FoodPad.xcodeproj/project.pbxproj` est donc **écrit à la main**.
 
 Il utilise `objectVersion = 77` avec un `PBXFileSystemSynchronizedRootGroup`

@@ -2,8 +2,7 @@
 //  MealService.swift
 //  FoodPad
 //
-//  Couche réseau. Remplace `axios` dans l'app React Native.
-//  Voir MIGRATION_SWIFT.md § Phase 2.
+//  Couche réseau.
 //
 //  API publique et gratuite, aucune clé requise : https://www.themealdb.com/api.php
 //
@@ -91,9 +90,8 @@ struct LiveMealService: MealService {
 
     /// `GET search.php?s={query}`
     ///
-    /// Utilisé par la barre de recherche de l'accueil. Dans l'app React Native
-    /// d'origine ce champ est décoratif (non câblé) — ici il devient
-    /// fonctionnel.
+    /// Utilisé par la barre de recherche de l'accueil, avec annulation de
+    /// tâche et debounce de 400 ms côté `HomeViewModel`.
     func searchMeals(query: String) async throws -> [Meal] {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return [] }

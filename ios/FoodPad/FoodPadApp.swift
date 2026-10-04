@@ -4,17 +4,8 @@
 //
 //  Point d'entrée et pile de navigation.
 //
-//  Équivalent de `src/navigation/index.js` :
-//
-//  ```js
-//  <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false }}>
-//    <Stack.Screen name="Home"           component={HomeScreen} />
-//    <Stack.Screen name="Welcome"        component={WelcomeScreen} />
-//    <Stack.Screen name="RecipeDetails"  component={RecipeDetailsScreen} />
-//  </Stack.Navigator>
-//  ```
-//
-//  `Welcome` est la route initiale et les en-têtes sont masqués.
+//  `Welcome` est la route initiale, les en-têtes sont masqués, et chaque
+//  écran empile le suivant.
 //
 //  Les routes sont modélisées par une `enum` plutôt que par des chaînes :
 //  SwiftUI transporte alors la recette sélectionnée jusqu'à l'écran de détails
@@ -106,7 +97,7 @@ struct RootView: View {
         NavigationStack(path: $path) {
             WelcomeScreen {
                 // Le bouton « Get Started » empile l'accueil par-dessus,
-                // comme `navigation.navigate("Home")` en React Navigation.
+                // Le bouton « Get Started » de l'accueil empile cet écran.
                 path.append(Route.home)
             }
             .navigationDestination(for: Route.self) { route in

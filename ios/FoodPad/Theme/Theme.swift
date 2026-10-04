@@ -2,13 +2,11 @@
 //  Theme.swift
 //  FoodPad
 //
-//  Palette de couleurs de l'app, relevée sur le code React Native d'origine.
+//  Palette de couleurs de l'app.
 //
-//  ⚠️  Ces valeurs sont celles de la palette Tailwind v3 **par défaut**.
-//  L'app d'origine ne surcharge pas `theme` dans `tailwind.config.js`
-//  (le fichier ne contient qu'un `extend: {}` vide), donc les classes
-//  `neutral-500`…`neutral-800` résolvent bien vers ces valeurs.
-//  Vérifie le rendu réel si tu ajoutes un jour une surcharge.
+//  ⚠️  Les gris suivent la palette Tailwind v3 (`neutral-500`…`neutral-800`),
+//  relevés sur la maquette d'origine. Vérifie le rendu réel si tu surcharges un
+//  jour le thème.
 //
 
 import SwiftUI

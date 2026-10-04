@@ -2,21 +2,15 @@
 //  Responsive.swift
 //  FoodPad
 //
-//  Équivalent Swift de `react-native-responsive-screen`.
+//  Dimensionnement en pourcentage de l'écran.
 //
-//  L'app React Native d'origine dimensionne sa mise en page en pourcentage de
-//  la hauteur / largeur de l'écran :
+//      5.hp()  ==  5 % de la hauteur de l'écran
+//      40.wp()  ==  40 % de la largeur de l'écran
 //
-//      heightPercentageToDP(5)  ->  5 % de la hauteur de l'écran
-//      widthPercentageToDP(40)   ->  40 % de la largeur de l'écran
-//
-//  On reproduit cette convention à l'identique pour que le rendu SwiftUI soit
-//  pixel-compatible avec l'app d'origine.
-//
-//  ⚠️  Convention_relative_à_la_hauteur — voir §2 du plan de migration.
-//  Ce n'est pas du responsive design : sur iPad ou en paysage, les valeurs
-//  explosent. La migration vers des contraintes / @ScaledMetric est un chantier
-//  séparé, à ne pas mélanger avec celui-ci.
+//  ⚠️  Convention relative à la hauteur. Ce n'est pas du responsive design :
+//  sur iPad ou en paysage, les valeurs explosent — un titre à 5 % d'une hauteur
+//  de 1 024 pt atteint 51 pt. Passer à des contraintes ou à `@ScaledMetric` est
+//  un chantier séparé, à ne pas mélanger avec celui-ci.
 //
 
 import SwiftUI
@@ -46,9 +40,6 @@ extension CGFloat {
     /// Hauteur en pourcentage de l'écran.
     ///
     ///     5.hp()  ==  5 % de la hauteur de l'écran
-    ///
-    /// - Important: Beware of Android conversion, see react-native docs.
-    ///   Unités en points iOS, pas en dp Android.
     func hp() -> CGFloat {
         self / 100 * ScreenMetrics.screenHeight
     }
@@ -63,7 +54,7 @@ extension CGFloat {
 
 extension Int {
     /// Variante `Int` de `hp()`, plus lisible pour les valeurs entières
-    /// issues du code d'origine (`hp(45)`, `hp(25)`…).
+    /// (`hp(45)`, `hp(25)`…).
     func hp() -> CGFloat { CGFloat(self).hp() }
     func wp() -> CGFloat { CGFloat(self).wp() }
 }

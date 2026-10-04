@@ -4,16 +4,13 @@
 //
 //  Composants transverses : indicateur de chargement, barre de recherche,
 //  barre de catégories, en-tête d'accueil.
-//  Traduction de `src/components/Loading.js`, `Categories.js` et des blocs
-//  correspondants de `HomeScreen.js`.
 //
 
 import SwiftUI
 
 // MARK: - Loading
 
-/// Équivalent de `src/components/Loading.js` :
-/// un `ActivityIndicator` centré verticalement et horizontalement.
+/// Indicateur d'attente, centré verticalement et horizontalement.
 struct Loading: View {
 
     var size: CGFloat = 2.5.hp()
@@ -36,8 +33,8 @@ struct Loading: View {
 
 /// Barre de recherche de l'écran d'accueil.
 ///
-/// Équivalent du `TextInput` entouré d'une bordure dans `HomeScreen.js` :
-/// `border rounded-xl border-black p-[6px]`, loupe dans un cercle blanc.
+/// Bordure noire d'1 pt, coins à 12, loupe dans un cercle blanc, texte qui
+/// déclenche la recherche à l'entrée clavier.
 struct SearchBar: View {
 
     @Binding var text: String
@@ -88,11 +85,10 @@ struct SearchBar: View {
 
 // MARK: - CategoryBar
 
-/// Barre horizontale de catégories.
+/// Barre horizontale de catégories, défilable.
 ///
-/// Équivalent de `src/components/Categories.js` : `ScrollView` horizontal avec
-/// `space-x-4` (16 pt) et `paddingHorizontal: 15`. La pastille de la
-/// catégorie active estfilled en accent, les autres en noir à 10 %.
+/// Espacement de 16 pt entre les pastilles, marge intérieure de 15. La
+/// catégorie active est remplie en accent, les autres en noir à 10 %.
 struct CategoryBar: View {
 
     let categories: [Category]
@@ -150,11 +146,8 @@ struct CategoryBar: View {
 /// En-tête de l'écran d'accueil : icône de filtres à gauche, avatar à droite,
 /// puis les deux lignes de titre.
 ///
-/// Équivalent du haut de `HomeScreen.js`.
-///
-/// ⚠️  Dans l'app d'origine ces deux éléments sont de simples `Image` sans
-/// gestionnaire d'appui : rien ne se passait. Ils deviennent ici des `Button`
-/// — l'icône ouvre les filtres, l'avatar les favoris.
+/// Les deux éléments sont des `Button` : l'icône ouvre les filtres, l'avatar
+/// les favoris.
 struct HomeHeader: View {
 
     /// `true` si un filtre autre que « tout afficher » est actif. Ajoute un

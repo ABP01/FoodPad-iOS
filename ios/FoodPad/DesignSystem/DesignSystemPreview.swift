@@ -2,11 +2,10 @@
 //  DesignSystemPreview.swift
 //  FoodPad
 //
-//  Écran de référence de la phase 1 : affiche tous les tokens extraits de
-//  l'app React Native, à comparer visuellement avec le rendu d'origine.
+//  Écran de référence : affiche tous les tokens du design system d'un coup.
 //
-//  Sert de garde-fou : tant que cet écran ne ressemble pas à l'app RN,
-//  inutile d'aller plus loin dans les phases 2 à 6.
+//  Sert de garde-fou — quand une valeur change, cet écran montre immédiatement
+//  l'effet sur l'ensemble de la palette et de la typo.
 //
 
 import SwiftUI
@@ -70,7 +69,7 @@ struct DesignSystemPreview: View {
     // MARK: - Couleurs
 
     private var colorsSection: some View {
-        section("Couleurs", note: "Tailwind v3 par défaut") {
+        section("Couleurs", note: "Palette de référence") {
             VStack(spacing: 10) {
                 ColorSwatch(name: "accent", hex: "f64e32", color: Theme.accent)
                 ColorSwatch(name: "neutral-800", hex: "262626", color: Theme.neutral800)
@@ -146,7 +145,7 @@ struct DesignSystemPreview: View {
     // MARK: - Formes
 
     private var shapesSection: some View {
-        section("Formes", note: "rayons relevés sur le RN") {
+        section("Formes", note: "rayons relevés sur la maquette") {
             VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 10) {
                     shape("35 pt", value: 35, note: "carte recette")
@@ -187,9 +186,9 @@ struct DesignSystemPreview: View {
 
     private var footer: some View {
         Text("""
-        Ces valeurs sont extraites du code React Native. \
-        Si le rendu diffère de l'app d'origine, c'est que l'une des deux \
-        hypothèses ci-dessus est fausse — notamment si Tailwind a été surchargé.
+        Ces valeurs sont celles de la palette Tailwind v3 par défaut. \
+        Si le rendu diffère de la maquette, c'est que l'une des hypothèses \
+        ci-dessus est fausse — notamment si le thème a été surchargé.
         """)
         .font(.system(size: 11))
         .foregroundStyle(.tertiary)

@@ -3,8 +3,7 @@
 //  FoodPad
 //
 //  Initialiseur de couleur depuis une chaîne hexadécimale.
-//  Les valeurs proviennent des classes Tailwind de l'app React Native
-//  (voir §2 du plan de migration : « Design system à extraire »).
+//  Les valeurs utilisées dans l'app sont récapitulées dans `Theme.swift`.
 //
 
 import SwiftUI
@@ -39,8 +38,8 @@ extension Color {
         )
     }
 
-    /// Compose une couleur au-dessus d'une autre (équivalent `bg-black/10`
-    /// de Tailwind : un noir à 10 % d'opacité).
+    /// Compose une couleur au-dessus d'une autre : un noir à 10 % d'opacité
+    /// au-dessus d'un fond clair.
     static func overlay(_ color: Color, opacity: Double) -> Color {
         color.opacity(opacity)
     }

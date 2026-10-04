@@ -2,9 +2,7 @@
 //  RecipeDetailsScreen.swift
 //  FoodPad
 //
-//  Fiche détaillée d'une recette.
-//  Traduction de `src/screens/RecipeDetailsScreen.js`.
-//  Voir MIGRATION_SWIFT.md § Phase 6.
+//  Fiche détaillée d'une recette : image plein cadre, ingrédient, instructions.
 //
 
 import SwiftUI
@@ -40,9 +38,9 @@ final class RecipeDetailsViewModel: ObservableObject {
 
     /// Charge la fiche complète.
     ///
-    /// ⚠️  L'app React Native utilise un `useEffect` **sans tableau de
-    /// dépendances**, ce qui relance l'appel réseau à chaque rendu. Ici le
-    /// `.task` de la vue ne s'exécute qu'une fois — ce bug est donc corrigé.
+    /// Le `.task` de la vue ne s'exécute qu'une fois : le garde-fou
+    /// `isDetailLoaded` évite surtout de relancer l'appel si la vue est
+    /// reconstruite (rotation, changement d'onglet).
     func load() async {
         guard !meal.isDetailLoaded else {
             isLoading = false
@@ -178,7 +176,8 @@ struct RecipeDetailsScreen: View {
     private var sheetContent: some View {
         VStack(alignment: .leading, spacing: 16) {
             if viewModel.isLoading {
-                // `mt-16` dans l'app RN : 4rem = 64 px (pas un pourcentage)
+                // Marge haute de 64 pt — un multiple de 4, donc une unité du design
+                // system, pas un pourcentage d'écran.
                 Loading(topPadding: 64)
                     .frame(height: 20.hp())
             } else {
@@ -200,7 +199,7 @@ struct RecipeDetailsScreen: View {
             )
             .fill(.white)
         )
-        // Chevauchement : `mt-[-46]` dans l'app React Native
+        // Le contenu chevauche l'image de 46 pt.
         .offset(y: -46)
         .padding(.top, 46)
     }
@@ -224,11 +223,6 @@ struct RecipeDetailsScreen: View {
     }
 
     /// Boutons vers la vidéo et la fiche source.
-    ///
-    /// ⚠️  Ajout : l'app React Native récupère `strYoutube` et `strSource`
-    /// (elle copie d'ailleurs la recette via un `Share` quand `strSource`
-    /// existe) mais n'affiche aucun lien. Les deux champs étaient donc
-    /// récupérés pour rien.
     ///
     /// Le bloc disparaît entièrement si la recette n'a ni vidéo ni source :
     /// `SomeMeals` en est dépourvue, et un bouton désactivé ferait moins bien
@@ -365,11 +359,10 @@ struct RecipeDetailsScreen: View {
 
     // MARK: Animation
 
-    /// Reproduit `.duration(700).springify().damping(12)` de Reanimated.
+    /// Ressort d'entrée en cascade : réponse de 700 ms, amortissement 0.7.
     ///
-    /// ⚠️  ReAnimated n'a pas d'équivalent exact en SwiftUI. `dampingFraction`
-    /// 0.7 donne un rendu proche ; à ajuster à l'œil si l'animation paraît
-    /// trop ferme ou trop molle. Voir MIGRATION_SWIFT.md § 5.1.
+    /// ⚠️  Valeur choisie à l'œil. À ajuster si l'animation paraît trop ferme
+    /// ou trop molle — ce réglage n'a pas pu être validé sur une image fixe.
     private func detailAnimation(delay: Double) -> Animation {
         .spring(response: 0.7, dampingFraction: 0.7)
             .delay(delay)

@@ -3,7 +3,6 @@
 //  FoodPad
 //
 //  Modèles de données, décodés depuis l'API TheMealDB.
-//  Voir MIGRATION_SWIFT.md § Phase 2.
 //
 
 import Foundation
@@ -14,8 +13,7 @@ import Foundation
 ///
 /// L'API TheMealDB renvoie toujours 20 paires `strIngredient1…20` /
 /// `strMeasure1…20`, dont la plupart sont vides. On ne conserve que les
-/// paires réellement remplies — même logique que la fonction
-/// `ingredientsIndexes` de l'app React Native.
+/// paires réellement remplies.
 struct Ingredient: Identifiable, Hashable {
     let name: String
     let measure: String
@@ -145,8 +143,7 @@ extension Meal: Decodable {
     }
 
     /// Balaye les 20 paires `strIngredientN` / `strMeasureN` et ne garde que
-    /// celles dont le nom est renseigné — exactement ce que fait la fonction
-    /// `ingredientsIndexes` de l'app React Native.
+    /// celles dont le nom est renseigné.
     private static func decodeIngredients(
         from container: KeyedDecodingContainer<DynamicKey>
     ) -> [Ingredient] {

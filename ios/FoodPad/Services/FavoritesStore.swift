@@ -4,14 +4,6 @@
 //
 //  Persistance des recettes favorites.
 //
-//  ⚠️  L'app React Native d'origine ne les persiste PAS : `RecipeDetailsScreen`
-//  utilise un simple `useState`, donc le cœur revient à l'état initial à chaque
-//  lancement. C'est un défaut, pas une fonctionnalité — voir
-//  MIGRATION_SWIFT.md § 5.2.
-//
-//  On le corrige au passage : c'est l'un des rares écarts assumés entre la
-//  version RN et la version Swift.
-//
 //  ⚠️  On stocke des **entrées complètes** et pas seulement des
 //  identifiants. L'écran « Mes favoris » doit s'afficher hors ligne, au
 //  lancement, sans attendre un appel réseau : il lui faut le nom et l'image de

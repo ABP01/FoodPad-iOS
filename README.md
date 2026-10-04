@@ -4,11 +4,10 @@
 
 **Explorez des milliers de recettes, à votre rythme.**
 
-Application mobile de recettes construite avec React Native & Expo.
+Application iOS native en Swift / SwiftUI.
 
-[![React Native](https://img.shields.io/badge/React%20Native-0.72-20232A?style=flat-square&logo=react)](https://reactnative.dev)
-[![Expo](https://img.shields.io/badge/Expo-~49.0-000020?style=flat-square&logo=expo)](https://expo.dev)
-[![NativeWind](https://img.shields.io/badge/NativeWind-2.0-38BDF8?style=flat-square&logo=tailwindcss)](https://www.nativewind.dev)
+[![Swift](https://img.shields.io/badge/Swift-5.0-F05138?style=flat-square&logo=swift)](https://swift.org)
+[![SwiftUI](https://img.shields.io/badge/SwiftUI-iOS%2016-0A7AFF?style=flat-square&logo=apple)](https://developer.apple.com/swiftui/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](./LICENSE)
 
 </div>
@@ -17,78 +16,96 @@ Application mobile de recettes construite avec React Native & Expo.
 
 ## 📱 À propos
 
-FoodPad est une application mobile qui permet de parcourir un large catalogue de
-recettes, de les filtrer par catégorie et de consulter le détail de chaque plat
+FoodPad est une application de recettes qui permet de parcourir un large
+catalogue, de filtrer par catégorie et de consulter le détail de chaque plat
 (ingrédients, quantités, instructions).
 
 Le projet est né d'une envie simple : disposer d'un carnet de recettes toujours
-à jour, consultable hors ligne et pleasant à utiliser sur téléphone.
+à jour, consultable hors ligne et agréable à utiliser sur téléphone.
 
 ### ✨ Fonctionnalités
 
 - **Écran d'accueil animé** — logo Lottie et transition vers l'app en un clic
-- **Navigation fluide** — pile de screens native stack, headers masqués, transitions partagées
-- **Catégories** — 14 catégories (Bœuf, Poulet, Fruits de mer, Végétarien, Dessert, Vegan…) sélectionnables en un tap
-- **Grille en maçonnerie** — 2 colonnes avec hauteurs variables, chargement progressif au scroll
-- **Fiche recette détaillée** — image HD, origine du plat, ingrédients avec mesures, instructions
-- **Cache d'images** — les images de plats sont converties en base 64 et stockées en `AsyncStorage` pour un affichage instantané
-- **Animations Reanimated** — entrées en `FadeInDown` avec spring, image partagée entre les écrans
-- **Responsive** — toutes les tailles reposent sur `react-native-responsive-screen`
-- **UI NativeWind** — styles utilitaires TailwindCSS, zéro `StyleSheet` manuel
+- **Navigation** — `NavigationStack` natif, en-têtes masqués, retour standard
+- **Catégories** — 14 catégories (Bœuf, Poulet, Fruits de mer, Végétarien,
+  Dessert, Vegan…) sélectionnables en un tap
+- **Grille en maçonnerie** — 2 colonnes, hauteurs alternées, `Layout` maison
+- **Fiche recette** — image plein cadre, origine, ingrédients, instructions
+- **Recherche** — interroge l'API à la frappe, avec annulation et debounce
+- **Filtres** — catégorie et mode « favoris uniquement », avec reset
+- **Favoris** — persistés sur disque, consultables hors ligne
+- **Liens utiles** — vidéo YouTube et fiche source quand la recette en fournit
+- **Cache d'images** — disque via `FileManager` + `NSCache` mémoire
+- **Accessibilité** — libellés VoiceOver sur chaque contrôle, états sélectionnés
 
 ### 🛠 Stack technique
 
 | Couche | Technologie |
 | --- | --- |
-| Framework | React Native 0.72 + Expo SDK 49 |
-| Langage | JavaScript |
-| Styles | NativeWind 2 / TailwindCSS 3 |
-| Animations | React Native Reanimated 3, Lottie |
-| Navigation | React Navigation 6 (native-stack) |
-| Réseau | Axios |
-| Icônes | Heroicons |
-| Grille | @react-native-seoul/masonry-list |
-| Stockage | AsyncStorage |
-| API | [TheMealDB](https://www.themealdb.com/api.php) — API gratuite de recettes |
+| Langage | Swift 5 |
+| UI | SwiftUI (`ObservableObject`, iOS 16.0+) |
+| Navigation | `NavigationStack` + `enum Route` typée |
+| Grille | `Layout` SwiftUI maison (aucun paquet tiers) |
+| Animation | `.spring` / `.easeOut`, Lottie (optionnel) |
+| Réseau | `URLSession` async/await |
+| Icônes | SF Symbols |
+| Cache disque | `FileManager` + `NSCache` |
+| Stockage | `UserDefaults` (JSON encodé) |
+| API | [TheMealDB](https://www.themealdb.com/api.php) — gratuite, sans clé |
+
+Aucune dépendance externe : le projet n'utilise que les frameworks système.
 
 ### 🔌 API utilisée
-
-Toutes les données proviennent de l'API publique gratuite
-[TheMealDB](https://www.themealdb.com/api.php). Aucune clé n'est requise.
 
 | Endpoint | Utilisation |
 | --- | --- |
 | `GET /categories.php` | Liste des catégories |
 | `GET /filter.php?c={catégorie}` | Recettes filtrées par catégorie |
 | `GET /lookup.php?i={id}` | Détail complet d'une recette |
+| `GET /search.php?s={recherche}` | Recherche par nom |
 
 ---
 
 ## 🚀 Installation & lancement
 
-**Prérequis :** [Node.js](https://nodejs.org) 18+, [Expo Go](https://expo.io/go)
-installé sur votre téléphone, ou un simulateur iOS / Android.
+**Prérequis :** macOS avec Xcode, et un simulateur iOS.
 
 ```bash
-# 1. Installer les dépendances
-npm install
+# Compiler
+cd ios
+xcodebuild -project FoodPad.xcodeproj -scheme FoodPad \
+  -sdk iphonesimulator \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  -derivedDataPath /tmp/fp-dd build
 
-# 2. Lancer le serveur de développement
-npm start
+# Installer et lancer sur le simulateur
+xcrun simctl install booted /tmp/fp-dd/Build/Products/Debug-iphonesimulator/FoodPad.app
+xcrun simctl launch booted com.armelbogue.foodpad
 ```
 
-Un QR code s'affiche dans le terminal : scannez-le avec **Expo Go** pour ouvrir
-l'app sur votre téléphone. Le rechargement est automatique à chaque modification
-de fichier.
+Ou ouvrir `ios/FoodPad.xcodeproj` dans Xcode et appuyer sur ▶.
 
-### Scripts disponibles
+### Outils de développement
 
-| Commande | Action |
-| --- | --- |
-| `npm start` | Démarre le serveur Expo (QR code + menu) |
-| `npm run ios` | Lance et ouvre l'app dans le simulateur iOS (macOS) |
-| `npm run android` | Lance et ouvre l'app sur un appareil / émulateur Android |
-| `npm run web` | Lance la version web (nécessite `npx expo install react-dom react-native-web`) |
+En configuration **Debug** uniquement, l'app accepte des arguments de lancement
+pour sauter directement à un écran et injecter des données :
+
+```bash
+xcrun simctl launch booted com.armelbogue.foodpad -startScreen home
+xcrun simctl launch booted com.armelbogue.foodpad -startScreen favorites
+xcrun simctl launch booted com.armelbogue.foodpad -startScreen details
+
+# Remplir les favoris (le magasin démarre vide et on ne peut pas cliquer)
+xcrun simctl launch booted com.armelbogue.foodpad \
+  -startScreen favorites -seedFavorites 6
+
+# Forcer le filtre « favoris uniquement »
+xcrun simctl launch booted com.armelbogue.foodpad \
+  -startScreen home -favoritesOnly
+```
+
+Le fichier `Components/DevTools.swift` est entièrement encadré par `#if DEBUG` :
+l'app livrée démarre toujours sur l'écran d'accueil.
 
 ---
 
@@ -96,153 +113,81 @@ de fichier.
 
 ```
 .
-├── App.js                     # Point d'entrée : rendu de la navigation
-├── app.json                   # Config Expo (nom, icônes, splash, slug)
-├── assets/
-│   ├── images/                # Avatar, fond de l'écran welcome
-│   ├── lottie/                # Animation du logo
-│   ├── icon.png               # Icône de l'app
-│   ├── splash.png             # Écran de démarrage
-│   └── adaptive-icon.png      # Icône Android
-├── src/
-│   ├── components/
-│   │   ├── Categories.js      # Sélecteur horizontal de catégories
-│   │   ├── Loading.js         # Indicateur de chargement
-│   │   ├── Recipes.js         # En-tête + grille en maçonnerie
-│   │   └── RecipesCard.js     # Carte d'une recette
-│   ├── constants/
-│   │   └── index.js           # Données statiques (descriptions de catégories)
-│   ├── navigation/
-│   │   └── index.js           # Stack de navigation (Welcome → Home → RecipeDetails)
-│   └── screens/
-│       ├── WelcomeScreen.js   # Écran d'introduction animé
-│       ├── HomeScreen.js      # Catégories + grille de recettes + recherche
-│       └── RecipeDetailsScreen.js  # Fiche détaillée d'une recette
-├── utils/
-│   └── index.js               # CachedImage : cache base 64 via AsyncStorage
-├── babel.config.js            # Config Babel (plugin NativeWind)
-├── tailwind.config.js         # Config TailwindCSS
-├── ios/                       # Version native SwiftUI
-│   ├── FoodPad.xcodeproj/
+├── ios/
+│   ├── FoodPad.xcodeproj/          # Projet Xcode (écrit à la main)
 │   └── FoodPad/
-│       ├── FoodPadApp.swift   # Point d'entrée + NavigationStack
-│       ├── Theme/             # Couleurs, typo, hp()/wp()      (phase 1)
-│       ├── DesignSystem/      # Écran de référence des tokens   (phase 1)
-│       ├── Models/            # Meal, Category, Ingredient      (phase 2)
-│       ├── Services/          # MealService, cache, favoris     (phase 2)
-│       ├── Components/        # MasonryGrid, RecipeCard, Cache, FilterSheet… (5-7, 9)
-│       ├── Screens/           # Welcome, Home, RecipeDetails, Favorites (3-6, 9)
-│       └── Resources/         # food-logo.json
-├── docs/                      # Captures d'écran de la version native
-└── scripts/                   # inspect-screenshot.py, generate-assets.py
+│       ├── FoodPadApp.swift        # Point d'entrée + NavigationStack
+│       ├── Theme/                  # Couleurs, typo, hp()/wp()
+│       ├── DesignSystem/           # Écran de référence des tokens
+│       ├── Models/                 # Meal, Category, Ingredient
+│       ├── Services/               # MealService, cache, favoris
+│       ├── Components/             # MasonryGrid, RecipeCard, CachedImage,
+│       │                           #   FilterSheet, DevTools
+│       ├── Screens/                # Welcome, Home, RecipeDetails, Favorites
+│       ├── Resources/              # food-logo.json (animation Lottie)
+│       └── Assets.xcassets/        # Icône, avatar, fond
+├── docs/                           # Captures d'écran
+└── scripts/                        # inspect-screenshot.py, generate-assets.py
 ```
 
----
+Le groupe `FoodPad` est un *synchronized root group* : tout fichier `.swift` ou
+`.xcassets` ajouté dans le dossier est intégré au projet sans modifier
+`project.pbxproj`.
 
-## 🔶 Migration native iOS
+### Scripts
 
-Une réécriture complète en **Swift / SwiftUI** est en cours, dans le dossier
-`ios/`. L'app React Native ci-dessus sert de référence visuelle.
-
-👉 **[MIGRATION_SWIFT.md](./MIGRATION_SWIFT.md)** — plan de travail détaillé :
-inventaire de l'app, design system extrait, 9 phases, pièges connus.
-
-| Phase | Statut |
+| Script | Rôle |
 | --- | --- |
-| 0 — Socle Xcode | ✅ |
-| 1 — Design system | ✅ |
-| 2 — Modèle + réseau | ✅ |
-| 3 — Welcome | ✅ |
-| 4 — Home | ✅ |
-| 5 — Grille maçonnerie | ✅ |
-| 6 — Fiche recette | ✅ |
-| 7 — Cache + finitions | ✅ |
-| 8 — Publication | ✅ |
-| 9 — Boutons fonctionnels | ✅ |
-
-**10 phases terminées, 22 fichiers Swift (3 556 lignes), 0 avertissement** en Debug
-comme en Release. Écarts assumés avec la version RN : favoris persistés (le RN les
-perd), recherche rendue fonctionnelle, `useEffect` sans dépendances corrigé,
-écran « Mes favoris » et feuille de filtres ajoutés (les boutons qui les ouvrent
-ne faisaient rien), et visuels d'origine régénérés (voir plus bas).
-
-### Lancer la version native
-
-```bash
-cd ios
-xcodebuild -project FoodPad.xcodeproj -scheme FoodPad \
-  -sdk iphonesimulator \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
-  -derivedDataPath /tmp/fp-dd build
-
-xcrun simctl install booted /tmp/fp-dd/Build/Products/Debug-iphonesimulator/FoodPad.app
-
-# Démarrage normal, ou jump direct à un écran pour développer :
-xcrun simctl launch booted com.armelbogue.foodpad
-xcrun simctl launch booted com.armelbogue.foodpad -startScreen home
-xcrun simctl launch booted com.armelbogue.foodpad -startScreen favorites
-xcrun simctl launch booted com.armelbogue.foodpad -startScreen details
-
-# Injecter des favoris pour voir l'écran correspondant rempli
-# (impossible sans ça : le magasin démarre vide et on ne peut pas cliquer)
-xcrun simctl launch booted com.armelbogue.foodpad \
-  -startScreen favorites -seedFavorites 6
-
-# Capture
-xcrun simctl io booted screenshot docs/mon-ecran.png
-
-# Analyse automatique du rendu (sans l'ouvrir)
-python3 scripts/inspect-screenshot.py docs/mon-ecran.png
-```
-
-Ces arguments de lancement n'existent qu'en configuration **Debug** : le fichier
-`Components/DevTools.swift` est entièrement encadré par `#if DEBUG`, et
-`-startScreen` n'est lu que dans cette configuration. L'app livrée démarre
-toujours sur l'écran d'accueil.
-
+| `scripts/inspect-screenshot.py` | Analyse une capture : couleurs dominantes, présence de l'accent, profil vertical en 12 bandes |
+| `scripts/generate-assets.py` | Régénère icône, avatar et fond d'accueil (encodeur PNG maison, aucune dépendance) |
 
 ---
 
 ## 🎬 Captures d'écran
 
-### Version native (SwiftUI)
-
 | Welcome | Accueil | Fiche recette |
 | --- | --- | --- |
 | ![Welcome](docs/native-welcome.png) | ![Accueil](docs/native-home.png) | ![Fiche](docs/native-details.png) |
-
-Écrans ajoutés en phase 9 :
 
 | Favoris | Favoris (vide) | Accueil filtré |
 | --- | --- | --- |
 | ![Favoris](docs/native-favorites.png) | ![Vide](docs/native-favorites-empty.png) | ![Filtre](docs/native-filter-favorites.png) |
 
-Écran de référence du design system (phases 0-1) :
+Écran de référence du design system :
 ![Design system](docs/phase1-design-system.png)
 
-### Version React Native
+---
 
-> À compléter — déposez vos captures dans `docs/` et référencez-les ici :
->
-> | Welcome | Accueil | Fiche recette |
-> | --- | --- | --- |
-> | `![Welcome](docs/rn-welcome.png)` | `![Accueil](docs/rn-home.png)` | `![Fiche](docs/rn-details.png)` |
+## 📘 Notes techniques
+
+**[MIGRATION_SWIFT.md](./MIGRATION_SWIFT.md)** — conception détaillée, décisions
+arbitrées et pièges rencontrés. Utile si tu reprends le projet.
+
+Points d'attention :
+
+- **`hp()` est relatif à la hauteur d'écran.** `5.hp()` = 5 % de la hauteur. Le
+  rendu se dégrade donc hors portrait et sur iPad. Un vrai passage au
+  responsive design est un chantier séparé.
+- **L'échelle d'espacement n'est pas la même que `hp()`.** Les multiples de 4 pt
+  (marge de 56 pt, 64 pt, 80 pt…) sont des unités fixes, pas des pourcentages.
+- **Les favoris stockent des entrées complètes** (`id`, `name`,
+  `thumbnailURL`), pas des identifiants : l'écran doit s'afficher hors ligne.
 
 ---
 
 ## 🛤 Feuille de route
 
-Terminé côté natif : barre de recherche branchée sur `search.php`, favoris
-persistés, cache disque des images, icône et visuels d'en-tête régénérés.
+Terminé : recherche branchée, favoris persistés, cache disque des images,
+feuilles de filtres, liens vers la vidéo et la source, visuels d'en-tête
+générés.
 
 Reste à faire :
 
 - [ ] Ajouter Lottie (`#if canImport(Lottie)` est déjà en place) — la dépendance
       SPM n'a pas pu être résolue depuis cette machine, à faire depuis Xcode
 - [ ] Mode hors ligne complet avec cache des réponses JSON
-- [ ] Rendre l'app sensible aux autres tailles d'écran : `hp()` est relatif à la
-      hauteur, donc le rendu se dégrade hors portrait (voir MIGRATION_SWIFT.md § 5.3)
-- [ ] Ajouter un système de notes / commentaires
+- [ ] Passer à un vrai responsive design (`@ScaledMetric` ou contraintes)
+- [ ] Transition partagée image — exige iOS 18, or la cible est iOS 16
 - [ ] Publier sur l'App Store
 
 ---
@@ -255,16 +200,11 @@ Reste à faire :
 
 ## 📜 Crédits & licence
 
-Ce projet est une adaptation d'un food app open source React Native
-initialement publié sur GitHub par **Joe Stacks** — un grand merci à lui pour
-le design et la base de code.
-
 - MIT License — voir [`LICENSE`](./LICENSE)
 - Recettes et images fournies par [TheMealDB](https://www.themealdb.com/api.php)
-- Icônes : [Heroicons](https://heroicons.com) (MIT)
 
 ---
 
 <div align="center">
-<sub>Construit avec ❤️ en React Native &amp; Expo</sub>
+<sub>Construit avec ❤️ en Swift &amp; SwiftUI</sub>
 </div>
