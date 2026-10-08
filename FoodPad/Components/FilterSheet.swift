@@ -166,7 +166,7 @@ struct FilterSheet: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .foregroundStyle(Theme.neutral800)
+        .foregroundStyle(.primary)
         .accessibilityAddTraits(selected ? [.isSelected] : [])
     }
 }

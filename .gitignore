@@ -4,22 +4,47 @@
 # Xcode
 build/
 DerivedData/
+*.xcuserstate
 xcuserdata/
 *.xcworkspace/xcuserdata/
-*.xcuserstate
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+timeline.xctimeline
+playground.xcworkspace
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# CocoaPods / Carthage (non utilisés, par sécurité)
+Pods/
+Carthage/Build/
+
+# Secrets / certificats
 *.mobileprovision
 *.p8
 *.p12
 *.key
-Pods/
+*.pem
+*.certSigningRequest
+*.provisionprofile
 
-# Editeurs
+# Éditeurs
 .vscode/
+.idea/
 
 # Outillage de session / agents
+.kilo/
+.qodo/
+.claude/
 .kilo/
 .qodo/
 
 # Divers
 *.orig.*
-*.pem
+*.log
+.env
+.env.*
