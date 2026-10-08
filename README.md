@@ -37,14 +37,13 @@ Le projet est né d'une envie simple : disposer d'un carnet de recettes toujours
 - **Images mises en cache** : elles s'affichent vite et sans recharger deux fois
 - **Accessibilité** : VoiceOver lit chaque bouton, les états sont annoncés
 
-
 ---
 
 ## 🚀 Lancer le projet
 
 **Prérequis :** un Mac avec [Xcode](https://developer.apple.com/xcode/).
 
-1. Ouvre `ios/FoodPad.xcodeproj` dans Xcode
+1. Ouvre `FoodPad.xcodeproj` dans Xcode
 2. Choisis un simulateur iPhone (ou ton téléphone)
 3. Appuie sur ▶
 
@@ -65,8 +64,8 @@ frameworks d'Apple.
 | **Réseau & stockage** | `URLSession`, favoris et images gardés en local |
 | **Dépendances** | aucune — uniquement les frameworks système |
 
-Les décisions de conception, les points d'attention et l'historique du projet
-sont détaillés dans **[MIGRATION_SWIFT.md](./MIGRATION_SWIFT.md)**.
+Le projet est volontairement sans dépendance externe : tout est implémenté à
+la main avec les frameworks natifs d'Apple.
 
 ## 🛤 Feuille de route
 
