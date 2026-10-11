@@ -1,7 +1,7 @@
 // HomeScreen - écran principal
 // Correspondance avec HomeScreen.swift
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, ScrollView, StyleSheet, Text } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useHomeStore } from '../store/homeStore';
@@ -11,6 +11,7 @@ import { HomeHeadline } from '../components/HomeHeadline';
 import { SearchBar } from '../components/SearchBar';
 import { CategoryBar } from '../components/CategoryBar';
 import { MasonryGrid } from '../components/MasonryGrid';
+import { FilterSheet } from '../components/FilterSheet';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { Meal } from '../types';
 import { typography } from '../theme/typography';
@@ -32,11 +33,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     searchMeals,
     setActiveCategory,
     setSearchQuery,
+    setFilter,
   } = useHomeStore();
 
   const { favorites, isFavorite } = useFavoritesStore();
 
   const searchTimeoutRef = useRef<number | undefined>(undefined);
+  const [filterVisible, setFilterVisible] = useState(false);
+  const [tempCategory, setTempCategory] = useState(activeCategory);
+  const [tempFavoritesOnly, setTempFavoritesOnly] = useState(filter.favoritesOnly);
 
   useEffect(() => {
     loadCategories();
@@ -62,8 +67,31 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     loadMeals(category);
   };
 
+  const handleFilterPress = () => {
+    setTempCategory(activeCategory);
+    setTempFavoritesOnly(filter.favoritesOnly);
+    setFilterVisible(true);
+  };
+
+  const handleFilterApply = () => {
+    setActiveCategory(tempCategory);
+    setFilter({ category: tempCategory, favoritesOnly: tempFavoritesOnly });
+    setSearchQuery('');
+    loadMeals(tempCategory);
+    setFilterVisible(false);
+  };
+
+  const handleFilterReset = () => {
+    setTempCategory('Beef');
+    setTempFavoritesOnly(false);
+  };
+
   const handleMealPress = (meal: Meal) => {
     navigation.navigate('RecipeDetails', { mealId: meal.idMeal });
+  };
+
+  const handleAvatarPress = () => {
+    navigation.navigate('Favorites');
   };
 
   const filteredMeals = filter.favoritesOnly
@@ -79,7 +107,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       >
         <View style={styles.headerSection}>
           <HomeHeader
-            onFilterPress={() => {}}
+            onFilterPress={handleFilterPress}
+            onAvatarPress={handleAvatarPress}
             favoritesCount={favorites.length}
             filterActive={filter.favoritesOnly}
           />
@@ -119,6 +148,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           </>
         )}
       </ScrollView>
+
+      <FilterSheet
+        visible={filterVisible}
+        onClose={() => setFilterVisible(false)}
+        categories={categories}
+        selectedCategory={tempCategory}
+        onCategorySelect={setTempCategory}
+        favoritesOnly={tempFavoritesOnly}
+        onFavoritesToggle={() => setTempFavoritesOnly(!tempFavoritesOnly)}
+        onApply={handleFilterApply}
+        onReset={handleFilterReset}
+      />
     </View>
   );
 };

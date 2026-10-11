@@ -10,12 +10,14 @@ import { CustomPressable } from './Pressable';
 
 interface HomeHeaderProps {
   onFilterPress: () => void;
+  onAvatarPress: () => void;
   favoritesCount: number;
   filterActive: boolean;
 }
 
 export const HomeHeader: React.FC<HomeHeaderProps> = ({
   onFilterPress,
+  onAvatarPress,
   favoritesCount,
   filterActive,
 }) => {
@@ -30,7 +32,7 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
         {filterActive && <View style={styles.filterDot} />}
       </CustomPressable>
 
-      <View style={styles.avatarContainer}>
+      <CustomPressable style={styles.avatarContainer} onPress={onAvatarPress}>
         <Image
           source={require('../../assets/avatar.png')}
           style={styles.avatar}
@@ -40,7 +42,7 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
             <Text style={styles.badgeText}>{favoritesCount}</Text>
           </View>
         )}
-      </View>
+      </CustomPressable>
     </View>
   );
 };
