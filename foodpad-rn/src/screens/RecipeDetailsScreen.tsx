@@ -7,10 +7,10 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Image,
   Linking,
   Alert,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -118,7 +118,8 @@ export const RecipeDetailsScreen: React.FC<RecipeDetailsScreenProps> = ({
         <Image
           source={{ uri: meal.strMealThumb || undefined }}
           style={styles.heroImage}
-          resizeMode="cover"
+          contentFit="cover"
+          cachePolicy="disk"
         />
 
         <View style={styles.topBar}>

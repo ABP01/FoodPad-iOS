@@ -2,7 +2,8 @@
 // Correspondance avec CategoryBar dans Components.swift
 
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { Image } from 'expo-image';
 import { colors, HP } from '../theme/tokens';
 import { typography } from '../theme/typography';
 import { Category } from '../types';
@@ -37,6 +38,8 @@ export const CategoryBar: React.FC<CategoryBarProps> = ({
           <Image
             source={{ uri: category.strCategoryThumb || undefined }}
             style={styles.categoryImage}
+            contentFit="cover"
+            cachePolicy="disk"
           />
           <Text
             style={[

@@ -2,7 +2,8 @@
 // Correspondance avec RecipeCard.swift
 
 import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, radius, HP } from '../theme/tokens';
 import { typography } from '../theme/typography';
@@ -31,7 +32,8 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ meal, index, onPress }) 
       <Image
         source={{ uri: meal.strMealThumb || undefined }}
         style={[styles.image, { height }]}
-        resizeMode="cover"
+        contentFit="cover"
+        cachePolicy="disk"
       />
       <LinearGradient
         colors={colors.gradient}
