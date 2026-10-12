@@ -1,8 +1,6 @@
-/** @type {import('tailwindcss').Config} */
 module.exports = {
-  // Tous les fichiers contenant des classes Nativewind
+  // Tous les fichiers contenant des classes twrnc (pour l'IntelliSense de l'éditeur)
   content: ['./src/**/*.{js,jsx,ts,tsx}'],
-  presets: [require('nativewind/preset')],
   theme: {
     extend: {
       colors: {

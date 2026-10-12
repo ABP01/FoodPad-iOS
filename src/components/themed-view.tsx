@@ -1,6 +1,7 @@
 import { View, type ViewProps } from 'react-native';
 
 import type { ThemeColor } from '@/constants/theme';
+import { className } from '@/utils/tw';
 
 export type ThemedViewProps = ViewProps & {
   lightColor?: string;
@@ -8,7 +9,7 @@ export type ThemedViewProps = ViewProps & {
   type?: ThemeColor;
 };
 
-/** Classes Tailwind (NativeWind) appliquées selon la couleur de thème. */
+/** Classes Tailwind (twrnc) appliquées selon la couleur de thème. */
 const colorClasses: Record<ThemeColor, string> = {
   background: 'bg-background dark:bg-dark-background',
   backgroundElement: 'bg-background-element dark:bg-dark-element',
@@ -19,17 +20,12 @@ const colorClasses: Record<ThemeColor, string> = {
 
 export function ThemedView({
   style,
-  className,
   lightColor,
   darkColor,
   type,
   ...otherProps
 }: ThemedViewProps) {
   return (
-    <View
-      className={[colorClasses[type ?? 'background'], className].filter(Boolean).join(' ')}
-      style={style}
-      {...otherProps}
-    />
+    <View style={[className.style(colorClasses[type ?? 'background']), style]} {...otherProps} />
   );
 }
