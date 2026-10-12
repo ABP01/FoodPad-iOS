@@ -5,7 +5,7 @@ type PersonIconProps = {
   color?: string;
 };
 
-const PersonIcon = ({ size = 89, color = "white" }: PersonIconProps) => {
+const PersonIcon = ({ size = 46, color = "white" }: PersonIconProps) => {
   return (
     <Svg
       width={size}
