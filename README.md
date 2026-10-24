@@ -1,97 +1,56 @@
-<div align="center">
+# Welcome to your Expo app 👋
 
-# 🍳 FoodPad
+This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-**Explorez des milliers de recettes, à votre rythme.**
+## Get started
 
-Application iOS native en Swift / SwiftUI.
+1. Install dependencies
 
-[![Swift](https://img.shields.io/badge/Swift-5.0-F05138?style=flat-square&logo=swift)](https://swift.org)
-[![SwiftUI](https://img.shields.io/badge/SwiftUI-iOS%2016-0A7AFF?style=flat-square&logo=apple)](https://developer.apple.com/swiftui/)
-[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](./LICENSE)
+   ```bash
+   npm install
+   ```
 
-</div>
+2. Start the app
 
----
+   ```bash
+   npx expo start
+   ```
 
-## 📱 À propos
+In the output, you'll find options to open the app in a
 
-FoodPad est une application iOS de recettes : on parcourt un grand catalogue,
-on filtre par catégorie, on cherche un plat au clavier et on consulte la fiche
-complète (ingrédients, quantités, instructions).
+- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-Le projet est né d'une envie simple : disposer d'un carnet de recettes toujours
-à jour, consultable hors ligne et agréable à utiliser sur téléphone.
+You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
-## ✨ Fonctionnalités
+## Get a fresh project
 
-- **Écran d'accueil animé** avec logo Lottie
-- **14 catégories** (Bœuf, Poulet, Fruits de mer, Végétarien, Dessert, Vegan…)
-  sélectionnables en un tap
-- **Grille de recettes** en deux colonnes, avec un affichage en mosaïque
-- **Fiche recette** avec grande photo, origine, ingrédients et instructions
-- **Recherche instantanée** pendant la frappe
-- **Filtres** par catégorie ou « favoris uniquement »
-- **Favoris** enregistrés sur le téléphone et consultables hors ligne
-- **Liens utiles** vers la vidéo YouTube et la recette d'origine quand il y en a
-- **Images mises en cache** : elles s'affichent vite et sans recharger deux fois
-- **Accessibilité** : VoiceOver lit chaque bouton, les états sont annoncés
+When you're ready, run:
 
----
+```bash
+npm run reset-project
+```
 
-## 🚀 Lancer le projet
+This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
-**Prérequis :** un Mac avec [Xcode](https://developer.apple.com/xcode/).
+### Other setup steps
 
-1. Ouvre `FoodPad.xcodeproj` dans Xcode
-2. Choisis un simulateur iPhone (ou ton téléphone)
-3. Appuie sur ▶
+- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
+- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
+- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
 
-C'est tout. Aucune dépendance à installer : le projet n'utilise que les
-frameworks d'Apple.
+## Learn more
 
-> Les recettes viennent de l'API gratuite
-> [TheMealDB](https://www.themealdb.com/api.php), sans clé d'accès.
+To learn more about developing your project with Expo, look at the following resources:
 
----
+- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
 
-## 🛠 Pour les curieux
+## Join the community
 
-| | |
-| --- | --- |
-| **Langage** | Swift 5 |
-| **Interface** | SwiftUI (iOS 16 et +) |
-| **Réseau & stockage** | `URLSession`, favoris et images gardés en local |
-| **Dépendances** | aucune — uniquement les frameworks système |
+Join our community of developers creating universal apps.
 
-Le projet est volontairement sans dépendance externe : tout est implémenté à
-la main avec les frameworks natifs d'Apple.
-
-## 🛤 Feuille de route
-
-- [x] Recherche, favoris persistés, cache d'images
-- [x] Filtres, liens vers la vidéo et la source
-- [ ] Animation Lottie au démarrage
-- [ ] Mode hors ligne complet
-- [ ] Meilleure prise en charge de l'iPad
-- [ ] Publier sur l'App Store
-
----
-
-## 👤 Auteur
-
-**Armel Bogue** — [GitHub](https://github.com/ABP01)
-
----
-
-## 📜 Crédits & licence
-
-- MIT License — voir [`LICENSE`](./LICENSE)
-- Recettes et images fournies par [TheMealDB](https://www.themealdb.com/api.php)
-
----
-
-<div align="center">
-<sub>Construit avec ❤️ en Swift &amp; SwiftUI</sub>
-</div>
-
+- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
+- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.

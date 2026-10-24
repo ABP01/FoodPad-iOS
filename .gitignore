@@ -1,50 +1,43 @@
-# macOS
-.DS_Store
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
-# Xcode
-build/
-DerivedData/
-*.xcuserstate
-xcuserdata/
-*.xcworkspace/xcuserdata/
-*.moved-aside
-*.hmap
-*.ipa
-*.dSYM.zip
-*.dSYM
-timeline.xctimeline
-playground.xcworkspace
+# dependencies
+node_modules/
 
-# Swift Package Manager
-.build/
-.swiftpm/
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
 
-# CocoaPods / Carthage (non utilisés, par sécurité)
-Pods/
-Carthage/Build/
-
-# Secrets / certificats
-*.mobileprovision
+# Native
+.kotlin/
+*.orig.*
+*.jks
 *.p8
 *.p12
 *.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
 *.pem
-*.certSigningRequest
-*.provisionprofile
 
-# Éditeurs
-.vscode/
-.idea/
+# local env files
+.env*.local
 
-# Outillage de session / agents
-.kilo/
-.qodo/
-.claude/
-.kilo/
-.qodo/
+# typescript
+*.tsbuildinfo
 
-# Divers
-*.orig.*
-*.log
-.env
-.env.*
+example
+
+# generated native folders
+/ios
+/android
